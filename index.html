@@ -30,17 +30,36 @@
       font-weight: 500;
       white-space: nowrap;
       transition: all 0.2s;
+      flex-shrink: 0;
     }
-
     .tab-btn:hover {
       color: rgba(255,255,255,0.9);
       background: rgba(255,255,255,0.08);
     }
-
     .tab-btn.active {
       color: #ffffff;
       background: rgba(255,255,255,0.12);
       border-bottom: 3px solid #5ba3f5;
+    }
+
+    .tab-setting-btn {
+      margin-left: auto;
+      flex-shrink: 0;
+      padding: 11px 14px;
+      color: rgba(255,255,255,0.5);
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      border-radius: 6px 6px 0 0;
+      transition: all 0.2s;
+      align-self: flex-end;
+    }
+    .tab-setting-btn:hover {
+      color: rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.08);
     }
 
     .loading-bar {
@@ -48,11 +67,9 @@
       width: 0%;
       background: #5ba3f5;
     }
-
     .loading-bar.running {
       animation: loadAnim 1.8s ease-in-out infinite;
     }
-
     @keyframes loadAnim {
       0%   { width: 0%;   opacity: 1; }
       70%  { width: 85%;  opacity: 1; }
@@ -65,48 +82,448 @@
       height: calc(100vh - 49px);
       border: none;
     }
+
+    /* OVERLAY */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .overlay.show { display: flex; }
+
+    /* MODAL */
+    .modal {
+      background: #1a2e47;
+      border-radius: 12px;
+      padding: 24px;
+      width: 92%;
+      max-width: 420px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .modal h2 {
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 18px;
+    }
+    .modal label {
+      display: block;
+      color: rgba(255,255,255,0.6);
+      font-size: 12px;
+      margin-bottom: 5px;
+      margin-top: 14px;
+    }
+    .modal label:first-of-type { margin-top: 0; }
+    .modal input {
+      width: 100%;
+      padding: 9px 12px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 7px;
+      color: #fff;
+      font-size: 13px;
+      outline: none;
+      transition: border 0.2s;
+    }
+    .modal input:focus { border-color: #5ba3f5; }
+    .modal input::placeholder { color: rgba(255,255,255,0.3); }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      justify-content: flex-end;
+    }
+    .btn-cancel {
+      padding: 8px 18px;
+      background: rgba(255,255,255,0.07);
+      color: rgba(255,255,255,0.7);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    .btn-cancel:hover { background: rgba(255,255,255,0.13); }
+    .btn-ok {
+      padding: 8px 22px;
+      background: #2563a8;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    .btn-ok:hover { background: #3578c8; }
+
+    /* SETTING PANEL */
+    .setting-panel {
+      background: #1a2e47;
+      border-radius: 12px;
+      padding: 24px;
+      width: 92%;
+      max-width: 480px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.1);
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    .setting-panel h2 {
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .setting-panel p {
+      color: rgba(255,255,255,0.4);
+      font-size: 12px;
+      margin-bottom: 18px;
+    }
+
+    .tab-list-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+    }
+    .tab-list-item .drag-handle {
+      color: rgba(255,255,255,0.3);
+      cursor: grab;
+      font-size: 16px;
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .tab-list-item .drag-handle:active { cursor: grabbing; }
+    .tab-list-item .tab-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .tab-list-item .tab-info .tab-name {
+      color: #fff;
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tab-list-item .tab-info .tab-url {
+      color: rgba(255,255,255,0.35);
+      font-size: 11px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tab-list-item .item-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .btn-edit-tab, .btn-delete-tab {
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .btn-edit-tab {
+      background: rgba(91,163,245,0.2);
+      color: #5ba3f5;
+    }
+    .btn-edit-tab:hover { background: rgba(91,163,245,0.35); }
+    .btn-delete-tab {
+      background: rgba(220,80,80,0.2);
+      color: #f07070;
+    }
+    .btn-delete-tab:hover { background: rgba(220,80,80,0.35); }
+
+    .btn-add-tab {
+      width: 100%;
+      margin-top: 12px;
+      padding: 10px;
+      background: rgba(37,99,168,0.3);
+      color: #5ba3f5;
+      border: 1px dashed rgba(91,163,245,0.4);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .btn-add-tab:hover { background: rgba(37,99,168,0.5); }
+
+    .setting-close {
+      width: 100%;
+      margin-top: 16px;
+      padding: 9px;
+      background: rgba(255,255,255,0.07);
+      color: rgba(255,255,255,0.6);
+      border: 1px solid rgba(255,255,255,0.13);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    .setting-close:hover { background: rgba(255,255,255,0.13); }
+
+    .tab-list-item.dragging {
+      opacity: 0.4;
+    }
+    .tab-list-item.drag-over {
+      border-color: #5ba3f5;
+      background: rgba(91,163,245,0.1);
+    }
   </style>
 </head>
 <body>
 
-<div class="tab-bar">
-  <button class="tab-btn active"
-    onclick="switchTab(this, 'https://script.google.com/macros/s/AKfycbxExCm3bnQHJhwmt0Blezj413TGPiqH46Hi17Y0LYuWkmMzShqSc8x4iiJ0J9FkL8smhw/exec')">
-    🎱 Panel
-  </button>
-  <button class="tab-btn"
-    onclick="switchTab(this, 'https://script.google.com/macros/s/AKfycbxc5_W2VLcGxORb7bYPu4_-amQM4KHZ0BWvFmaH3eXoW0sk67i4e5EYHvWMlVKd8E4X/exec?page=admin')">
-    ⏱ Break
-  </button>
-  <button class="tab-btn"
-    onclick="switchTab(this, 'https://script.google.com/macros/s/AKfycbx1kEoApR5cR2FXGNC-1vwyGfKN3DcNOITgzsqYvIZDMP1cBVYEenuH0f64zCZk-0Rx/exec')">
-    📦 Stok Bar
-  </button>
+<div class="tab-bar" id="tabBar">
+  <!-- tabs rendered by JS -->
+  <button class="tab-setting-btn" onclick="openSetting()" title="Pengaturan Tab">⚙️</button>
 </div>
 
 <div class="loading-bar" id="loadBar"></div>
 
-<iframe
-  id="main-frame"
-  src="https://script.google.com/macros/s/AKfycbxExCm3bnQHJhwmt0Blezj413TGPiqH46Hi17Y0LYuWkmMzShqSc8x4iiJ0J9FkL8smhw/exec"
-  allowfullscreen>
-</iframe>
+<iframe id="main-frame" src="" allowfullscreen></iframe>
+
+<!-- MODAL TAMBAH / EDIT TAB -->
+<div class="overlay" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">Tambah Tab Baru</h2>
+    <label>Nama Tab</label>
+    <input type="text" id="inputNama" placeholder="contoh: 🎱 Panel" />
+    <label>Alamat URL</label>
+    <input type="text" id="inputUrl" placeholder="https://script.google.com/..." />
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Batal</button>
+      <button class="btn-ok" onclick="submitModal()">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTING PANEL -->
+<div class="overlay" id="settingOverlay">
+  <div class="setting-panel">
+    <h2>⚙️ Pengaturan Tab</h2>
+    <p>Seret ☰ untuk mengubah urutan tab</p>
+    <div id="tabListContainer"></div>
+    <button class="btn-add-tab" onclick="openAddModal()">+ Tambah Tab Baru</button>
+    <button class="setting-close" onclick="closeSetting()">Tutup</button>
+  </div>
+</div>
 
 <script>
+  const DEFAULT_TABS = [
+    { nama: '🎱 Panel', url: 'https://script.google.com/macros/s/AKfycbxExCm3bnQHJhwmt0Blezj413TGPiqH46Hi17Y0LYuWkmMzShqSc8x4iiJ0J9FkL8smhw/exec' },
+    { nama: '⏱ Break', url: 'https://script.google.com/macros/s/AKfycbxc5_W2VLcGxORb7bYPu4_-amQM4KHZ0BWvFmaH3eXoW0sk67i4e5EYHvWMlVKd8E4X/exec?page=admin' },
+    { nama: '📦 Stok Bar', url: 'https://script.google.com/macros/s/AKfycbx1kEoApR5cR2FXGNC-1vwyGfKN3DcNOITgzsqYvIZDMP1cBVYEenuH0f64zCZk-0Rx/exec' }
+  ];
+
+  let tabs = [];
+  let activeIndex = 0;
+  let editIndex = -1;
+  let dragSrcIndex = -1;
+
   const frame = document.getElementById('main-frame');
   const loadBar = document.getElementById('loadBar');
+  const tabBar = document.getElementById('tabBar');
+  const settingBtn = tabBar.querySelector('.tab-setting-btn');
 
-  function switchTab(btn, url) {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+  function loadTabs() {
+    try {
+      const saved = localStorage.getItem('gg_tabs');
+      tabs = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(DEFAULT_TABS));
+    } catch(e) {
+      tabs = JSON.parse(JSON.stringify(DEFAULT_TABS));
+    }
+  }
+
+  function saveTabs() {
+    localStorage.setItem('gg_tabs', JSON.stringify(tabs));
+  }
+
+  function renderTabBar() {
+    const existing = tabBar.querySelectorAll('.tab-btn');
+    existing.forEach(b => b.remove());
+
+    tabs.forEach((tab, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'tab-btn' + (i === activeIndex ? ' active' : '');
+      btn.textContent = tab.nama;
+      btn.onclick = () => switchTab(i);
+      tabBar.insertBefore(btn, settingBtn);
+    });
+  }
+
+  function switchTab(index) {
+    activeIndex = index;
+    renderTabBar();
     loadBar.classList.add('running');
-    frame.src = url;
+    frame.src = tabs[index].url;
   }
 
   frame.addEventListener('load', () => {
     loadBar.classList.remove('running');
     loadBar.style.width = '0%';
   });
+
+  // ── MODAL TAMBAH/EDIT ──
+  function openAddModal() {
+    editIndex = -1;
+    document.getElementById('modalTitle').textContent = 'Tambah Tab Baru';
+    document.getElementById('inputNama').value = '';
+    document.getElementById('inputUrl').value = '';
+    document.getElementById('settingOverlay').classList.remove('show');
+    document.getElementById('modalOverlay').classList.add('show');
+    document.getElementById('inputNama').focus();
+  }
+
+  function openEditModal(i) {
+    editIndex = i;
+    document.getElementById('modalTitle').textContent = 'Edit Tab';
+    document.getElementById('inputNama').value = tabs[i].nama;
+    document.getElementById('inputUrl').value = tabs[i].url;
+    document.getElementById('settingOverlay').classList.remove('show');
+    document.getElementById('modalOverlay').classList.add('show');
+    document.getElementById('inputNama').focus();
+  }
+
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('show');
+    editIndex = -1;
+  }
+
+  function submitModal() {
+    const nama = document.getElementById('inputNama').value.trim();
+    const url  = document.getElementById('inputUrl').value.trim();
+    if (!nama || !url) { alert('Nama dan URL wajib diisi.'); return; }
+
+    if (editIndex === -1) {
+      tabs.push({ nama, url });
+      activeIndex = tabs.length - 1;
+    } else {
+      tabs[editIndex] = { nama, url };
+      if (activeIndex === editIndex) {
+        frame.src = url;
+      }
+    }
+
+    saveTabs();
+    renderTabBar();
+    closeModal();
+
+    if (editIndex === -1) {
+      switchTab(activeIndex);
+    }
+  }
+
+  // ── SETTING PANEL ──
+  function openSetting() {
+    renderTabList();
+    document.getElementById('settingOverlay').classList.add('show');
+  }
+
+  function closeSetting() {
+    document.getElementById('settingOverlay').classList.remove('show');
+  }
+
+  function renderTabList() {
+    const container = document.getElementById('tabListContainer');
+    container.innerHTML = '';
+
+    tabs.forEach((tab, i) => {
+      const item = document.createElement('div');
+      item.className = 'tab-list-item';
+      item.draggable = true;
+      item.dataset.index = i;
+
+      item.innerHTML = `
+        <span class="drag-handle" title="Seret untuk pindah urutan">☰</span>
+        <div class="tab-info">
+          <div class="tab-name">${escHtml(tab.nama)}</div>
+          <div class="tab-url">${escHtml(tab.url)}</div>
+        </div>
+        <div class="item-actions">
+          <button class="btn-edit-tab" onclick="openEditModal(${i})">Edit</button>
+          <button class="btn-delete-tab" onclick="deleteTab(${i})">Hapus</button>
+        </div>
+      `;
+
+      item.addEventListener('dragstart', e => {
+        dragSrcIndex = i;
+        setTimeout(() => item.classList.add('dragging'), 0);
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      item.addEventListener('dragend', () => {
+        item.classList.remove('dragging');
+        document.querySelectorAll('.tab-list-item').forEach(el => el.classList.remove('drag-over'));
+      });
+      item.addEventListener('dragover', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        document.querySelectorAll('.tab-list-item').forEach(el => el.classList.remove('drag-over'));
+        item.classList.add('drag-over');
+      });
+      item.addEventListener('drop', e => {
+        e.preventDefault();
+        if (dragSrcIndex === i) return;
+        const moved = tabs.splice(dragSrcIndex, 1)[0];
+        tabs.splice(i, 0, moved);
+        if (activeIndex === dragSrcIndex) activeIndex = i;
+        else if (dragSrcIndex < activeIndex && i >= activeIndex) activeIndex--;
+        else if (dragSrcIndex > activeIndex && i <= activeIndex) activeIndex++;
+        saveTabs();
+        renderTabBar();
+        renderTabList();
+      });
+
+      container.appendChild(item);
+    });
+  }
+
+  function deleteTab(i) {
+    if (!confirm(`Hapus tab "${tabs[i].nama}"?`)) return;
+    tabs.splice(i, 1);
+    if (activeIndex >= tabs.length) activeIndex = tabs.length - 1;
+    saveTabs();
+    renderTabBar();
+    if (tabs.length > 0) switchTab(activeIndex);
+    renderTabList();
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // Tekan Enter untuk submit modal
+  document.getElementById('inputUrl').addEventListener('keydown', e => {
+    if (e.key === 'Enter') submitModal();
+  });
+
+  // Klik di luar modal untuk tutup
+  document.getElementById('modalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+  document.getElementById('settingOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeSetting();
+  });
+
+  // INIT
+  loadTabs();
+  renderTabBar();
+  if (tabs.length > 0) switchTab(0);
 </script>
 
 </body>
