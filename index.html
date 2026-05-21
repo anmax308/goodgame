@@ -34,3 +34,81 @@
 
     .tab-btn:hover {
       color: rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.08);
+    }
+
+    .tab-btn.active {
+      color: #ffffff;
+      background: rgba(255,255,255,0.12);
+      border-bottom: 3px solid #5ba3f5;
+    }
+
+    .loading-bar {
+      height: 3px;
+      width: 0%;
+      background: #5ba3f5;
+      transition: width 0.1s;
+    }
+
+    .loading-bar.running {
+      animation: loadAnim 1.8s ease-in-out infinite;
+    }
+
+    @keyframes loadAnim {
+      0%   { width: 0%;   opacity: 1; }
+      70%  { width: 85%;  opacity: 1; }
+      100% { width: 100%; opacity: 0; }
+    }
+
+    #main-frame {
+      display: block;
+      width: 100%;
+      height: calc(100vh - 49px);
+      border: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="tab-bar">
+  <button class="tab-btn active"
+    onclick="switchTab(this, 'https://docs.google.com/spreadsheets/d/1Tr3hV7lPQ2nEpLE66sD0s75o0VslXBkHB_w12LLmXTU')">
+    🎱 Panel
+  </button>
+  <button class="tab-btn"
+    onclick="switchTab(this, 'https://docs.google.com/spreadsheets/d/1K3OApBjwW6xTBlznSC-3N5WOJvXeeYngr4wtfGu9Gis')">
+    ⏱ Break
+  </button>
+  <button class="tab-btn"
+    onclick="switchTab(this, 'https://docs.google.com/spreadsheets/d/1K3OApBjwW6xTBlznSC-3N5WOJvXeeYngr4wtfGu9Gis')">
+    📦 Stok Bar
+  </button>
+</div>
+
+<div class="loading-bar" id="loadBar"></div>
+
+<iframe
+  id="main-frame"
+  src="URL_DEPLOY_PANEL"
+  allowfullscreen>
+</iframe>
+
+<script>
+  const frame = document.getElementById('main-frame');
+  const loadBar = document.getElementById('loadBar');
+
+  function switchTab(btn, url) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    loadBar.classList.add('running');
+    frame.src = url;
+  }
+
+  frame.addEventListener('load', () => {
+    loadBar.classList.remove('running');
+    loadBar.style.width = '0%';
+  });
+</script>
+
+</body>
+</html>
