@@ -107,6 +107,22 @@
     .tab-item.active { background: rgba(91,163,245,0.2); color: #fff; border-color: rgba(91,163,245,0.25); }
     .tab-item .tab-dot { display: none; }
     .tab-item.active .tab-dot { display: none; }
+    .tab-item {
+      display: flex !important;
+      align-items: center;
+    }
+    .tab-icon {
+      width: 24px;
+      flex-shrink: 0;
+      text-align: center;
+      font-size: 16px;
+    }
+    .tab-label {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
     .sidebar-footer { padding: 7px 6px; border-top: 1px solid rgba(255,255,255,0.07); flex-shrink: 0; }
     .btn-setting {
@@ -293,7 +309,12 @@
     tabs.forEach((tab, i) => {
       const item = document.createElement('div');
       item.className = 'tab-item' + (i === activeIndex ? ' active' : '');
-      item.innerHTML = `<span class="tab-dot"></span>${escHtml(tab.nama)}`;
+      // Pisah emoji/icon (karakter pertama) dan teks nama
+      const namaStr = tab.nama;
+      const iconMatch = namaStr.match(/^(\p{Emoji_Presentation}|\p{Extended_Pictographic}|[^\w\s])\s*/u);
+      const icon = iconMatch ? iconMatch[0].trim() : '';
+      const label = iconMatch ? namaStr.slice(iconMatch[0].length) : namaStr;
+      item.innerHTML = `<span class="tab-icon">${escHtml(icon)}</span><span class="tab-label">${escHtml(label)}</span>`;
       item.onclick = () => { switchTab(i); closeSidebar(); };
       list.appendChild(item);
     });
