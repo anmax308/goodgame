@@ -6,16 +6,24 @@
   <title>GoodGame Billiard</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; background: #0f1f35; overflow: hidden; }
+    html, body { width: 100%; height: 100%; overflow: hidden; font-family: Arial, sans-serif; background: #0f1f35; }
 
     #main-frame {
       display: block;
-      width: 100vw;
-      height: 100vh;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
       border: none;
     }
 
-    /* MENU BUTTON */
+    /* Khusus tab Bar Order, iframe dibuat sedikit lebih kecil
+       supaya nav fixed di dalam tidak terpotong browser chrome */
+    #main-frame.mode-bar {
+      height: calc(100% - 60px);
+      margin-bottom: 60px;
+    }
+
     #menu-trigger {
       position: fixed;
       top: 12px;
@@ -33,6 +41,7 @@
       justify-content: center;
       gap: 5px;
       backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
       transition: background 0.2s;
     }
     #menu-trigger:hover { background: rgba(37, 99, 168, 0.9); }
@@ -42,16 +51,14 @@
       height: 2px;
       background: rgba(255,255,255,0.85);
       border-radius: 2px;
-      transition: background 0.2s;
     }
 
-    /* SIDEBAR DRAWER */
     #sidebar {
       position: fixed;
       top: 0;
       right: -260px;
       width: 240px;
-      height: 100vh;
+      height: 100%;
       background: #1e3a5f;
       z-index: 190;
       display: flex;
@@ -68,6 +75,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      flex-shrink: 0;
     }
     .sidebar-header span {
       color: rgba(255,255,255,0.5);
@@ -77,127 +85,66 @@
       text-transform: uppercase;
     }
     .sidebar-header button {
-      background: none;
-      border: none;
+      background: none; border: none;
       color: rgba(255,255,255,0.35);
-      cursor: pointer;
-      font-size: 18px;
-      line-height: 1;
-      padding: 2px 4px;
-      border-radius: 4px;
-      transition: color 0.2s;
+      cursor: pointer; font-size: 18px; line-height: 1;
+      padding: 2px 4px; border-radius: 4px; transition: color 0.2s;
     }
     .sidebar-header button:hover { color: rgba(255,255,255,0.8); }
 
-    .tab-list {
-      flex: 1;
-      overflow-y: auto;
-      padding: 10px 8px;
-    }
+    .tab-list { flex: 1; overflow-y: auto; padding: 10px 8px; }
     .tab-list::-webkit-scrollbar { width: 4px; }
     .tab-list::-webkit-scrollbar-track { background: transparent; }
     .tab-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
 
     .tab-item {
-      display: flex;
-      align-items: center;
-      padding: 10px 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      color: rgba(255,255,255,0.65);
-      font-size: 13px;
-      font-weight: 500;
-      transition: all 0.15s;
-      margin-bottom: 2px;
+      display: flex; align-items: center;
+      padding: 10px 12px; border-radius: 8px; cursor: pointer;
+      color: rgba(255,255,255,0.65); font-size: 13px; font-weight: 500;
+      transition: all 0.15s; margin-bottom: 2px;
       border: 1px solid transparent;
     }
-    .tab-item:hover {
-      background: rgba(255,255,255,0.08);
-      color: #fff;
-    }
-    .tab-item.active {
-      background: rgba(91,163,245,0.15);
-      color: #fff;
-      border-color: rgba(91,163,245,0.3);
-    }
+    .tab-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .tab-item.active { background: rgba(91,163,245,0.15); color: #fff; border-color: rgba(91,163,245,0.3); }
     .tab-item .tab-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
+      width: 6px; height: 6px; border-radius: 50%;
       background: rgba(255,255,255,0.2);
-      margin-right: 10px;
-      flex-shrink: 0;
-      transition: background 0.15s;
+      margin-right: 10px; flex-shrink: 0; transition: background 0.15s;
     }
     .tab-item.active .tab-dot { background: #5ba3f5; }
 
-    .sidebar-footer {
-      padding: 10px 8px;
-      border-top: 1px solid rgba(255,255,255,0.08);
-    }
+    .sidebar-footer { padding: 10px 8px; border-top: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; }
     .btn-setting {
-      width: 100%;
-      padding: 9px 12px;
-      background: transparent;
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 8px;
-      color: rgba(255,255,255,0.5);
-      font-size: 12px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.2s;
+      width: 100%; padding: 9px 12px;
+      background: transparent; border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px; color: rgba(255,255,255,0.5); font-size: 12px;
+      cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;
     }
-    .btn-setting:hover {
-      background: rgba(255,255,255,0.07);
-      color: rgba(255,255,255,0.8);
-    }
+    .btn-setting:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.8); }
 
-    /* OVERLAY tutup sidebar saat klik luar */
-    #sidebar-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 180;
-    }
+    #sidebar-overlay { display: none; position: fixed; inset: 0; z-index: 180; }
     #sidebar-overlay.show { display: block; }
 
-    /* LOADING BAR */
     .loading-bar {
-      position: fixed;
-      top: 0; left: 0;
-      height: 3px;
-      width: 0%;
-      background: #5ba3f5;
-      z-index: 300;
+      position: fixed; top: 0; left: 0;
+      height: 3px; width: 0%; background: #5ba3f5; z-index: 300;
     }
-    .loading-bar.running {
-      animation: loadAnim 1.8s ease-in-out infinite;
-    }
+    .loading-bar.running { animation: loadAnim 1.8s ease-in-out infinite; }
     @keyframes loadAnim {
       0%   { width: 0%;   opacity: 1; }
       70%  { width: 85%;  opacity: 1; }
       100% { width: 100%; opacity: 0; }
     }
 
-    /* MODAL TAMBAH/EDIT */
     .overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      z-index: 400;
-      align-items: center;
-      justify-content: center;
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6); z-index: 400;
+      align-items: center; justify-content: center;
     }
     .overlay.show { display: flex; }
     .modal {
-      background: #1a2e47;
-      border-radius: 12px;
-      padding: 24px;
-      width: 92%;
-      max-width: 420px;
+      background: #1a2e47; border-radius: 12px; padding: 24px;
+      width: 92%; max-width: 420px;
       box-shadow: 0 8px 32px rgba(0,0,0,0.5);
       border: 1px solid rgba(255,255,255,0.1);
     }
@@ -208,8 +155,7 @@
       width: 100%; padding: 9px 12px;
       background: rgba(255,255,255,0.07);
       border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 7px; color: #fff; font-size: 13px; outline: none;
-      transition: border 0.2s;
+      border-radius: 7px; color: #fff; font-size: 13px; outline: none; transition: border 0.2s;
     }
     .modal input:focus { border-color: #5ba3f5; }
     .modal input::placeholder { color: rgba(255,255,255,0.3); }
@@ -227,7 +173,6 @@
     }
     .btn-ok:hover { background: #3578c8; }
 
-    /* SETTING PANEL */
     .setting-panel {
       background: #1a2e47; border-radius: 12px; padding: 24px;
       width: 92%; max-width: 480px;
@@ -243,25 +188,13 @@
       border: 1px solid rgba(255,255,255,0.1);
       border-radius: 8px; padding: 10px 12px; margin-bottom: 8px;
     }
-    .tab-list-item .drag-handle {
-      color: rgba(255,255,255,0.3); cursor: grab; font-size: 16px;
-      user-select: none; flex-shrink: 0;
-    }
+    .tab-list-item .drag-handle { color: rgba(255,255,255,0.3); cursor: grab; font-size: 16px; user-select: none; flex-shrink: 0; }
     .tab-list-item .drag-handle:active { cursor: grabbing; }
     .tab-list-item .tab-info { flex: 1; min-width: 0; }
-    .tab-list-item .tab-info .tab-name {
-      color: #fff; font-size: 13px; font-weight: 500;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .tab-list-item .tab-info .tab-url {
-      color: rgba(255,255,255,0.35); font-size: 11px;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
+    .tab-list-item .tab-info .tab-name { color: #fff; font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tab-list-item .tab-info .tab-url { color: rgba(255,255,255,0.35); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .tab-list-item .item-actions { display: flex; gap: 6px; flex-shrink: 0; }
-    .btn-edit-tab, .btn-delete-tab {
-      padding: 5px 10px; border-radius: 6px; border: none;
-      cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.2s;
-    }
+    .btn-edit-tab, .btn-delete-tab { padding: 5px 10px; border-radius: 6px; border: none; cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.2s; }
     .btn-edit-tab { background: rgba(91,163,245,0.2); color: #5ba3f5; }
     .btn-edit-tab:hover { background: rgba(91,163,245,0.35); }
     .btn-delete-tab { background: rgba(220,80,80,0.2); color: #f07070; }
@@ -270,8 +203,7 @@
       width: 100%; margin-top: 12px; padding: 10px;
       background: rgba(37,99,168,0.3); color: #5ba3f5;
       border: 1px dashed rgba(91,163,245,0.4);
-      border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500;
-      transition: all 0.2s;
+      border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s;
     }
     .btn-add-tab:hover { background: rgba(37,99,168,0.5); }
     .setting-close {
@@ -288,18 +220,12 @@
 <body>
 
 <div class="loading-bar" id="loadBar"></div>
-
-<iframe id="main-frame" src="" allowfullscreen></iframe>
-
-<!-- TOMBOL MENU -->
+<iframe id="main-frame" src="" allow="fullscreen"></iframe>
 <div id="menu-trigger" onclick="toggleSidebar()">
   <span></span><span></span><span></span>
 </div>
-
-<!-- OVERLAY KLIK LUAR -->
 <div id="sidebar-overlay" onclick="closeSidebar()"></div>
 
-<!-- SIDEBAR -->
 <div id="sidebar">
   <div class="sidebar-header">
     <span>Menu</span>
@@ -307,13 +233,10 @@
   </div>
   <div class="tab-list" id="sidebarTabList"></div>
   <div class="sidebar-footer">
-    <button class="btn-setting" onclick="openSetting()">
-      ⚙️ <span>Pengaturan Tab</span>
-    </button>
+    <button class="btn-setting" onclick="openSetting()">⚙️ <span>Pengaturan Tab</span></button>
   </div>
 </div>
 
-<!-- MODAL TAMBAH/EDIT -->
 <div class="overlay" id="modalOverlay">
   <div class="modal">
     <h2 id="modalTitle">Tambah Tab Baru</h2>
@@ -328,7 +251,6 @@
   </div>
 </div>
 
-<!-- SETTING PANEL -->
 <div class="overlay" id="settingOverlay">
   <div class="setting-panel">
     <h2>⚙️ Pengaturan Tab</h2>
@@ -340,31 +262,34 @@
 </div>
 
 <script>
+  // Daftar tab yang punya nav bar bawah fixed — iframe akan dikecilkan
+  // supaya nav bar tidak terpotong. Tambahkan URL lain di sini jika perlu.
+  const BOTTOM_NAV_URLS = [
+    'AKfycbx1kEoApR5cR2FXGNC-1vwyGfKN3DcNOITgzsqYvIZDMP1cBVYEenuH0f64zCZk-0Rx'
+  ];
+
   const DEFAULT_TABS = [
     { nama: '🎱 Panel', url: 'https://script.google.com/macros/s/AKfycbxExCm3bnQHJhwmt0Blezj413TGPiqH46Hi17Y0LYuWkmMzShqSc8x4iiJ0J9FkL8smhw/exec' },
     { nama: '⏱ Break', url: 'https://script.google.com/macros/s/AKfycbxc5_W2VLcGxORb7bYPu4_-amQM4KHZ0BWvFmaH3eXoW0sk67i4e5EYHvWMlVKd8E4X/exec?page=admin' },
     { nama: '📦 Stok Bar', url: 'https://script.google.com/macros/s/AKfycbx1kEoApR5cR2FXGNC-1vwyGfKN3DcNOITgzsqYvIZDMP1cBVYEenuH0f64zCZk-0Rx/exec' }
   ];
 
-  let tabs = [];
-  let activeIndex = 0;
-  let editIndex = -1;
-  let dragSrcIndex = -1;
-
+  let tabs = [], activeIndex = 0, editIndex = -1, dragSrcIndex = -1;
   const frame = document.getElementById('main-frame');
   const loadBar = document.getElementById('loadBar');
   const sidebar = document.getElementById('sidebar');
   const sidebarOverlay = document.getElementById('sidebar-overlay');
 
+  function hasBottomNav(url) {
+    return BOTTOM_NAV_URLS.some(id => url.includes(id));
+  }
+
   function loadTabs() {
     try {
       const saved = localStorage.getItem('gg_tabs');
       tabs = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(DEFAULT_TABS));
-    } catch(e) {
-      tabs = JSON.parse(JSON.stringify(DEFAULT_TABS));
-    }
+    } catch(e) { tabs = JSON.parse(JSON.stringify(DEFAULT_TABS)); }
   }
-
   function saveTabs() { localStorage.setItem('gg_tabs', JSON.stringify(tabs)); }
 
   function renderSidebarTabs() {
@@ -383,7 +308,14 @@
     activeIndex = index;
     renderSidebarTabs();
     loadBar.classList.add('running');
-    frame.src = tabs[index].url;
+    const url = tabs[index].url;
+    // Kalau tab ini punya nav bar bawah fixed, kecilkan iframe
+    if (hasBottomNav(url)) {
+      frame.classList.add('mode-bar');
+    } else {
+      frame.classList.remove('mode-bar');
+    }
+    frame.src = url;
   }
 
   frame.addEventListener('load', () => {
@@ -391,22 +323,10 @@
     loadBar.style.width = '0%';
   });
 
-  function toggleSidebar() {
-    const isOpen = sidebar.classList.contains('open');
-    isOpen ? closeSidebar() : openSidebar();
-  }
+  function toggleSidebar() { sidebar.classList.contains('open') ? closeSidebar() : openSidebar(); }
+  function openSidebar() { sidebar.classList.add('open'); sidebarOverlay.classList.add('show'); }
+  function closeSidebar() { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('show'); }
 
-  function openSidebar() {
-    sidebar.classList.add('open');
-    sidebarOverlay.classList.add('show');
-  }
-
-  function closeSidebar() {
-    sidebar.classList.remove('open');
-    sidebarOverlay.classList.remove('show');
-  }
-
-  // MODAL
   function openAddModal() {
     editIndex = -1;
     document.getElementById('modalTitle').textContent = 'Tambah Tab Baru';
@@ -416,7 +336,6 @@
     document.getElementById('modalOverlay').classList.add('show');
     document.getElementById('inputNama').focus();
   }
-
   function openEditModal(i) {
     editIndex = i;
     document.getElementById('modalTitle').textContent = 'Edit Tab';
@@ -426,50 +345,27 @@
     document.getElementById('modalOverlay').classList.add('show');
     document.getElementById('inputNama').focus();
   }
-
-  function closeModal() {
-    document.getElementById('modalOverlay').classList.remove('show');
-    editIndex = -1;
-  }
-
+  function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); editIndex = -1; }
   function submitModal() {
     const nama = document.getElementById('inputNama').value.trim();
     const url  = document.getElementById('inputUrl').value.trim();
     if (!nama || !url) { alert('Nama dan URL wajib diisi.'); return; }
-    if (editIndex === -1) {
-      tabs.push({ nama, url });
-      activeIndex = tabs.length - 1;
-    } else {
-      tabs[editIndex] = { nama, url };
-      if (activeIndex === editIndex) frame.src = url;
-    }
-    saveTabs();
-    renderSidebarTabs();
-    closeModal();
+    if (editIndex === -1) { tabs.push({ nama, url }); activeIndex = tabs.length - 1; }
+    else { tabs[editIndex] = { nama, url }; if (activeIndex === editIndex) frame.src = url; }
+    saveTabs(); renderSidebarTabs(); closeModal();
     if (editIndex === -1) switchTab(activeIndex);
   }
 
-  // SETTING
-  function openSetting() {
-    closeSidebar();
-    renderTabList();
-    document.getElementById('settingOverlay').classList.add('show');
-  }
-
-  function closeSetting() {
-    document.getElementById('settingOverlay').classList.remove('show');
-  }
-
+  function openSetting() { closeSidebar(); renderTabList(); document.getElementById('settingOverlay').classList.add('show'); }
+  function closeSetting() { document.getElementById('settingOverlay').classList.remove('show'); }
   function renderTabList() {
     const container = document.getElementById('tabListContainer');
     container.innerHTML = '';
     tabs.forEach((tab, i) => {
       const item = document.createElement('div');
-      item.className = 'tab-list-item';
-      item.draggable = true;
-      item.dataset.index = i;
+      item.className = 'tab-list-item'; item.draggable = true; item.dataset.index = i;
       item.innerHTML = `
-        <span class="drag-handle" title="Seret untuk pindah urutan">☰</span>
+        <span class="drag-handle">☰</span>
         <div class="tab-info">
           <div class="tab-name">${escHtml(tab.nama)}</div>
           <div class="tab-url">${escHtml(tab.url)}</div>
@@ -477,62 +373,34 @@
         <div class="item-actions">
           <button class="btn-edit-tab" onclick="openEditModal(${i})">Edit</button>
           <button class="btn-delete-tab" onclick="deleteTab(${i})">Hapus</button>
-        </div>
-      `;
-      item.addEventListener('dragstart', e => {
-        dragSrcIndex = i;
-        setTimeout(() => item.classList.add('dragging'), 0);
-        e.dataTransfer.effectAllowed = 'move';
-      });
-      item.addEventListener('dragend', () => {
-        item.classList.remove('dragging');
-        document.querySelectorAll('.tab-list-item').forEach(el => el.classList.remove('drag-over'));
-      });
-      item.addEventListener('dragover', e => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-        document.querySelectorAll('.tab-list-item').forEach(el => el.classList.remove('drag-over'));
-        item.classList.add('drag-over');
-      });
+        </div>`;
+      item.addEventListener('dragstart', e => { dragSrcIndex = i; setTimeout(() => item.classList.add('dragging'), 0); e.dataTransfer.effectAllowed = 'move'; });
+      item.addEventListener('dragend', () => { item.classList.remove('dragging'); document.querySelectorAll('.tab-list-item').forEach(el => el.classList.remove('drag-over')); });
+      item.addEventListener('dragover', e => { e.preventDefault(); document.querySelectorAll('.tab-list-item').forEach(el => el.classList.remove('drag-over')); item.classList.add('drag-over'); });
       item.addEventListener('drop', e => {
-        e.preventDefault();
-        if (dragSrcIndex === i) return;
-        const moved = tabs.splice(dragSrcIndex, 1)[0];
-        tabs.splice(i, 0, moved);
+        e.preventDefault(); if (dragSrcIndex === i) return;
+        const moved = tabs.splice(dragSrcIndex, 1)[0]; tabs.splice(i, 0, moved);
         if (activeIndex === dragSrcIndex) activeIndex = i;
         else if (dragSrcIndex < activeIndex && i >= activeIndex) activeIndex--;
         else if (dragSrcIndex > activeIndex && i <= activeIndex) activeIndex++;
-        saveTabs();
-        renderSidebarTabs();
-        renderTabList();
+        saveTabs(); renderSidebarTabs(); renderTabList();
       });
       container.appendChild(item);
     });
   }
-
   function deleteTab(i) {
     if (!confirm(`Hapus tab "${tabs[i].nama}"?`)) return;
     tabs.splice(i, 1);
     if (activeIndex >= tabs.length) activeIndex = tabs.length - 1;
-    saveTabs();
-    renderSidebarTabs();
+    saveTabs(); renderSidebarTabs();
     if (tabs.length > 0) switchTab(activeIndex);
     renderTabList();
   }
+  function escHtml(str) { return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-  function escHtml(str) {
-    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  document.getElementById('inputUrl').addEventListener('keydown', e => {
-    if (e.key === 'Enter') submitModal();
-  });
-  document.getElementById('modalOverlay').addEventListener('click', function(e) {
-    if (e.target === this) closeModal();
-  });
-  document.getElementById('settingOverlay').addEventListener('click', function(e) {
-    if (e.target === this) closeSetting();
-  });
+  document.getElementById('inputUrl').addEventListener('keydown', e => { if (e.key === 'Enter') submitModal(); });
+  document.getElementById('modalOverlay').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+  document.getElementById('settingOverlay').addEventListener('click', function(e) { if (e.target === this) closeSetting(); });
 
   loadTabs();
   renderSidebarTabs();
