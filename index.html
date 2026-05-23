@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Dashboard</title>
     <style>
         * {
@@ -374,10 +374,12 @@
 
         .panel-footer {
             padding: 15px 20px;
+            padding-bottom: max(15px, env(safe-area-inset-bottom));
             border-top: 1px solid #eee;
             display: flex;
             flex-direction: column;
             gap: 10px;
+            flex-shrink: 0;
         }
 
         /* ============ SETTINGS MODAL ============ */
@@ -859,11 +861,11 @@
 
         async function handleLogout() {
             try {
-                const form = new FormData();
-                form.append('action', 'logout');
-                form.append('username', state.currentUser);
-                form.append('token', state.sessionToken);
-                await fetch(state.appsScriptUrl, { method: 'POST', mode: 'no-cors', body: form });
+                const url = state.appsScriptUrl
+                    + '?action=logout'
+                    + '&username=' + encodeURIComponent(state.currentUser)
+                    + '&token='    + encodeURIComponent(state.sessionToken);
+                await fetch(url, { redirect: 'follow' });
             } catch(e) {}
             localStorage.removeItem('currentUser');
             localStorage.removeItem('sessionToken');
@@ -1050,7 +1052,9 @@
             const tab = state.tabs.find(t => t.name === tabName);
             
             if (tab && tab.url) {
-                contentArea.innerHTML = `<iframe src="${tab.url}" class="iframe-container"></iframe>`;
+                const separator = tab.url.includes('?') ? '&' : '?';
+                const secureUrl = `${tab.url}${separator}token=${encodeURIComponent(state.sessionToken)}&username=${encodeURIComponent(state.currentUser)}`;
+                contentArea.innerHTML = `<iframe src="${secureUrl}" class="iframe-container"></iframe>`;
             } else {
                 contentArea.innerHTML = '<div class="empty-state">Klik tombol menu untuk membuka TAB</div>';
             }
@@ -1095,16 +1099,17 @@
         async function saveTabs() {
             showSaveIndicator(true);
             try {
-                const form = new FormData();
-                form.append('action', 'saveTabs');
-                form.append('username', state.currentUser);
-                form.append('token', state.sessionToken);
-                form.append('tabs', JSON.stringify(state.tabs));
-                await fetch(state.appsScriptUrl, { method: 'POST', mode: 'no-cors', body: form });
+                const url = state.appsScriptUrl
+                    + '?action=saveTabs'
+                    + '&username=' + encodeURIComponent(state.currentUser)
+                    + '&token='    + encodeURIComponent(state.sessionToken)
+                    + '&tabs='     + encodeURIComponent(JSON.stringify(state.tabs));
+                const res  = await fetch(url, { redirect: 'follow' });
+                const data = await res.json();
+                if (!data.success) console.error('saveTabs gagal:', data.message);
             } catch(e) {
                 console.error('saveTabs error:', e);
             } finally {
-                await new Promise(r => setTimeout(r, 1500));
                 showSaveIndicator(false);
             }
         }
