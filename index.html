@@ -770,6 +770,7 @@
             tabs: [],
             currentTab: localStorage.getItem('currentTab') || null,
             menuPosition: localStorage.getItem('menuPosition') || 'top-left',
+            sessionToken: localStorage.getItem('sessionToken') || null,
             appsScriptUrl: 'https://script.google.com/macros/s/AKfycbwGA4XdpF4aM3ZU7taVfUX474BEcXC9k1YubzxghQJq_jgFU3meT5H1PGcbu8HOGPkcOQ/exec'
         };
 
@@ -780,9 +781,11 @@
         });
 
         function initializeApp() {
-            const savedUser = localStorage.getItem('currentUser');
-            if (savedUser) {
-                state.currentUser = JSON.parse(savedUser);
+            const savedUser  = localStorage.getItem('currentUser');
+            const savedToken = localStorage.getItem('sessionToken');
+            if (savedUser && savedToken) {
+                state.currentUser  = JSON.parse(savedUser);
+                state.sessionToken = savedToken;
                 showApp();
             } else {
                 showLogin();
@@ -833,12 +836,14 @@
 
                 if (data.success === true) {
                     state.currentUser = username;
+                    state.sessionToken = data.token;
                     localStorage.setItem('currentUser', JSON.stringify(username));
+                    localStorage.setItem('sessionToken', data.token);
                     showApp();
                     document.getElementById('username').value = '';
                     document.getElementById('password').value = '';
                 } else {
-                    errorEl.textContent = 'Username atau password salah';
+                    errorEl.textContent = data.message || 'Username atau password salah';
                     errorEl.style.display = 'block';
                 }
 
@@ -852,14 +857,21 @@
             }
         }
 
-        function handleLogout() {
-            if (true) {
-                localStorage.removeItem('currentUser');
-                state.currentUser = null;
-                document.getElementById('appContainer').style.display = 'none';
-                document.getElementById('loginContainer').style.display = 'flex';
-                closePanel();
-            }
+        async function handleLogout() {
+            try {
+                const form = new FormData();
+                form.append('action', 'logout');
+                form.append('username', state.currentUser);
+                form.append('token', state.sessionToken);
+                await fetch(state.appsScriptUrl, { method: 'POST', mode: 'no-cors', body: form });
+            } catch(e) {}
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('sessionToken');
+            state.currentUser  = null;
+            state.sessionToken = null;
+            document.getElementById('appContainer').style.display = 'none';
+            document.getElementById('loginContainer').style.display = 'flex';
+            closePanel();
         }
 
         // ============ UI SWITCHING ============
@@ -880,11 +892,16 @@
 
         async function loadTabsFromSheet() {
             try {
-                const url = `${state.appsScriptUrl}?action=getTabs&username=${encodeURIComponent(state.currentUser)}`;
-                const res = await fetch(url);
+                const url = `${state.appsScriptUrl}?action=getTabs&username=${encodeURIComponent(state.currentUser)}&token=${encodeURIComponent(state.sessionToken)}`;
+                const res = await fetch(url, { redirect: 'follow' });
                 const data = await res.json();
                 if (data.success && data.tabs) {
                     state.tabs = data.tabs;
+                } else if (data.message && data.message.includes('expired')) {
+                    // Session expired - paksa login ulang
+                    localStorage.removeItem('currentUser');
+                    localStorage.removeItem('sessionToken');
+                    location.reload();
                 }
             } catch(e) {
                 console.error('loadTabs error:', e);
@@ -1078,21 +1095,15 @@
         async function saveTabs() {
             showSaveIndicator(true);
             try {
-                // Kirim via form POST untuk bypass CORS & panjang URL
                 const form = new FormData();
                 form.append('action', 'saveTabs');
                 form.append('username', state.currentUser);
+                form.append('token', state.sessionToken);
                 form.append('tabs', JSON.stringify(state.tabs));
-
-                await fetch(state.appsScriptUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    body: form
-                });
+                await fetch(state.appsScriptUrl, { method: 'POST', mode: 'no-cors', body: form });
             } catch(e) {
                 console.error('saveTabs error:', e);
             } finally {
-                // Tunggu sebentar agar Apps Script selesai proses
                 await new Promise(r => setTimeout(r, 1500));
                 showSaveIndicator(false);
             }
