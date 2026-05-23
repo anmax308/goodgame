@@ -679,7 +679,7 @@
 
         <!-- CONTENT AREA -->
         <div class="content-area" id="contentArea">
-            <div class="empty-state">Pilih menu untuk membuka modul</div>
+            <div class="empty-state">Klik tombol menu untuk membuka TAB</div>
         </div>
     </div>
 
@@ -1035,7 +1035,7 @@
             if (tab && tab.url) {
                 contentArea.innerHTML = `<iframe src="${tab.url}" class="iframe-container"></iframe>`;
             } else {
-                contentArea.innerHTML = '<div class="empty-state">URL tidak valid</div>';
+                contentArea.innerHTML = '<div class="empty-state">Klik tombol menu untuk membuka TAB</div>';
             }
             
             renderNavbar();
