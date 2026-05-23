@@ -767,7 +767,7 @@
         const state = {
             currentUser: null,
             navbarMode: localStorage.getItem('navbarMode') || 'tabs',
-            tabs: JSON.parse(localStorage.getItem('appTabs')) || [],
+            tabs: [],
             currentTab: localStorage.getItem('currentTab') || null,
             menuPosition: localStorage.getItem('menuPosition') || 'top-left',
             appsScriptUrl: 'https://script.google.com/macros/s/AKfycbwGA4XdpF4aM3ZU7taVfUX474BEcXC9k1YubzxghQJq_jgFU3meT5H1PGcbu8HOGPkcOQ/exec'
@@ -824,7 +824,7 @@
             loginBtn.disabled = true;
 
             try {
-                const url = `${state.appsScriptUrl}?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`;
+                const url = `${state.appsScriptUrl}?action=login&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`;
                 const response = await fetch(url, { method: 'GET', mode: 'cors' });
 
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -868,12 +868,27 @@
             document.getElementById('appContainer').style.display = 'none';
         }
 
-        function showApp() {
+        async function showApp() {
             document.getElementById('loginContainer').style.display = 'none';
             document.getElementById('appContainer').style.display = 'flex';
             applyMenuPosition(state.menuPosition);
             setNavbarMode(state.navbarMode);
+            await loadTabsFromSheet();
             renderNavbar();
+            if (state.currentTab) selectTab(state.currentTab);
+        }
+
+        async function loadTabsFromSheet() {
+            try {
+                const url = `${state.appsScriptUrl}?action=getTabs&username=${encodeURIComponent(state.currentUser)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.success && data.tabs) {
+                    state.tabs = data.tabs;
+                }
+            } catch(e) {
+                console.error('loadTabs error:', e);
+            }
         }
 
         function applyMenuPosition(pos) {
@@ -1027,7 +1042,7 @@
             closePanel();
         }
 
-        function addNewTab() {
+        async function addNewTab() {
             const name = document.getElementById('tabName').value.trim();
             const url = document.getElementById('tabUrl').value.trim();
             const errEl = document.getElementById('addTabError');
@@ -1046,7 +1061,7 @@
             errEl.style.display = 'none';
 
             state.tabs.push({ name, url });
-            saveTabs();
+            await saveTabs();
             document.getElementById('tabName').value = '';
             document.getElementById('tabUrl').value = '';
             // tab berhasil ditambahkan
@@ -1060,8 +1075,9 @@
 
 
 
-        function saveTabs() {
-            localStorage.setItem('appTabs', JSON.stringify(state.tabs));
+        async function saveTabs() {
+            const url = `${state.appsScriptUrl}?action=saveTabs&username=${encodeURIComponent(state.currentUser)}&tabs=${encodeURIComponent(JSON.stringify(state.tabs))}`;
+            try { await fetch(url); } catch(e) { console.error('saveTabs error:', e); }
         }
 
         // ============ SETTINGS MODAL ============
@@ -1158,7 +1174,7 @@
             document.getElementById(`del-row-${idx}`).style.display = 'none';
         }
 
-        function saveInlineEdit(oldName, idx) {
+        async function saveInlineEdit(oldName, idx) {
             const newName = document.getElementById(`edit-name-${idx}`).value.trim();
             const newUrl = document.getElementById(`edit-url-${idx}`).value.trim();
             const errEl = document.getElementById(`edit-err-${idx}`);
@@ -1181,18 +1197,18 @@
                 state.currentTab = newName;
                 localStorage.setItem('currentTab', newName);
             }
-            saveTabs();
+            await saveTabs();
             renderNavbar();
             renderManageTabsList();
         }
 
-        function confirmDelete(tabName) {
+        async function confirmDelete(tabName) {
             state.tabs = state.tabs.filter(t => t.name !== tabName);
             if (state.currentTab === tabName) {
                 state.currentTab = state.tabs.length > 0 ? state.tabs[0].name : null;
                 localStorage.setItem('currentTab', state.currentTab || '');
             }
-            saveTabs();
+            await saveTabs();
             renderNavbar();
             if (state.currentTab) selectTab(state.currentTab);
             renderManageTabsList();
@@ -1211,7 +1227,7 @@
             e.preventDefault();
         }
 
-        function handleDrop(e) {
+        async function handleDrop(e) {
             e.preventDefault();
             if (draggedItem !== this) {
                 const allItems = Array.from(document.querySelectorAll('.tabs-list-item'));
@@ -1222,7 +1238,7 @@
                 state.tabs.splice(draggedIndex, 1);
                 state.tabs.splice(targetIndex, 0, temp);
 
-                saveTabs();
+                await saveTabs();
                 renderManageTabsList();
             }
         }
