@@ -1076,8 +1076,35 @@
 
 
         async function saveTabs() {
-            const url = `${state.appsScriptUrl}?action=saveTabs&username=${encodeURIComponent(state.currentUser)}&tabs=${encodeURIComponent(JSON.stringify(state.tabs))}`;
-            try { await fetch(url); } catch(e) { console.error('saveTabs error:', e); }
+            showSaveIndicator(true);
+            try {
+                await fetch(state.appsScriptUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'saveTabs',
+                        username: state.currentUser,
+                        tabs: state.tabs
+                    })
+                });
+            } catch(e) {
+                console.error('saveTabs error:', e);
+            } finally {
+                showSaveIndicator(false);
+            }
+        }
+
+        function showSaveIndicator(show) {
+            let el = document.getElementById('saveIndicator');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'saveIndicator';
+                el.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#333;color:white;padding:8px 16px;border-radius:20px;font-size:13px;z-index:9999;transition:opacity 0.3s;pointer-events:none;';
+                document.body.appendChild(el);
+            }
+            el.textContent = show ? 'Menyimpan...' : 'Tersimpan ✓';
+            el.style.opacity = '1';
+            if (!show) setTimeout(() => { el.style.opacity = '0'; }, 1500);
         }
 
         // ============ SETTINGS MODAL ============
