@@ -1078,17 +1078,22 @@
         async function saveTabs() {
             showSaveIndicator(true);
             try {
-                const tabsJson = JSON.stringify(state.tabs);
-                const url = state.appsScriptUrl
-                    + '?action=saveTabs'
-                    + '&username=' + encodeURIComponent(state.currentUser)
-                    + '&tabs=' + encodeURIComponent(tabsJson);
-                const res = await fetch(url, { redirect: 'follow' });
-                const data = await res.json();
-                if (!data.success) console.error('saveTabs gagal:', data);
+                // Kirim via form POST untuk bypass CORS & panjang URL
+                const form = new FormData();
+                form.append('action', 'saveTabs');
+                form.append('username', state.currentUser);
+                form.append('tabs', JSON.stringify(state.tabs));
+
+                await fetch(state.appsScriptUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: form
+                });
             } catch(e) {
                 console.error('saveTabs error:', e);
             } finally {
+                // Tunggu sebentar agar Apps Script selesai proses
+                await new Promise(r => setTimeout(r, 1500));
                 showSaveIndicator(false);
             }
         }
