@@ -1,426 +1,1272 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GoodGame Billiard</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; font-family: Arial, sans-serif; background: #0f1f35; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    #main-frame {
-      display: block;
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
 
-    /* Khusus tab Bar Order, iframe dibuat sedikit lebih kecil
-       supaya nav fixed di dalam tidak terpotong browser chrome */
-    #main-frame.mode-bar {
-      height: 100%;
-      margin-bottom: 0;
-    }
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
 
-    #menu-trigger {
-      position: fixed;
-      top: 12px;
-      right: 12px;
-      z-index: 200;
-      width: 34px;
-      height: 34px;
-      background: rgba(15, 31, 53, 0.55);
-      border: 1px solid rgba(255,255,255,0.22);
-      border-radius: 8px;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      transition: background 0.2s;
-    }
-    #menu-trigger:hover { background: rgba(37, 99, 168, 0.55); }
-    #menu-trigger span {
-      display: block;
-      width: 16px;
-      height: 1.5px;
-      background: rgba(255,255,255,0.9);
-      border-radius: 2px;
-    }
+        /* ============ LOGIN PAGE ============ */
+        .login-container {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 9999;
+        }
 
-    #sidebar {
-      position: fixed;
-      top: 0;
-      right: -210px;
-      width: 190px;
-      height: 100%;
-      background: rgba(15, 31, 53, 0.82);
-      z-index: 190;
-      display: flex;
-      flex-direction: column;
-      box-shadow: -4px 0 24px rgba(0,0,0,0.35);
-      transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      border-left: 1px solid rgba(255,255,255,0.1);
-    }
-    #sidebar.open { right: 0; }
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 400px;
+        }
 
-    .sidebar-header {
-      padding: 10px 12px 8px;
-      border-bottom: 1px solid rgba(255,255,255,0.07);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-shrink: 0;
-    }
-    .sidebar-header span {
-      color: rgba(255,255,255,0.85);
-      font-size: 14px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-    .sidebar-header button {
-      background: none; border: none;
-      color: rgba(255,255,255,0.3);
-      cursor: pointer; font-size: 16px; line-height: 1;
-      padding: 2px 4px; border-radius: 4px; transition: color 0.2s;
-    }
-    .sidebar-header button:hover { color: rgba(255,255,255,0.8); }
+        .login-box h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+            font-size: 24px;
+        }
 
-    .tab-list { flex: 1; overflow-y: auto; padding: 6px 6px; }
-    .tab-list::-webkit-scrollbar { width: 3px; }
-    .tab-list::-webkit-scrollbar-track { background: transparent; }
-    .tab-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 2px; }
+        .login-box .form-group {
+            margin-bottom: 20px;
+        }
 
-    .tab-item {
-      display: block;
-      padding: 10px 12px; border-radius: 7px; cursor: pointer;
-      color: rgba(255,255,255,0.9); font-size: 15px; font-weight: 600;
-      transition: all 0.15s; margin-bottom: 3px;
-      border: 1px solid transparent;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .tab-item:hover { background: rgba(255,255,255,0.09); color: #fff; }
-    .tab-item.active { background: rgba(91,163,245,0.2); color: #fff; border-color: rgba(91,163,245,0.25); }
-    .tab-item .tab-dot { display: none; }
-    .tab-item.active .tab-dot { display: none; }
-    .tab-item {
-      display: flex !important;
-      align-items: center;
-    }
-    .tab-icon {
-      width: 24px;
-      flex-shrink: 0;
-      text-align: center;
-      font-size: 16px;
-    }
-    .tab-label {
-      flex: 1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+        .login-box label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
 
-    .sidebar-footer { padding: 7px 6px; border-top: 1px solid rgba(255,255,255,0.07); flex-shrink: 0; }
-    .btn-setting {
-      width: 100%; padding: 7px 10px;
-      background: transparent; border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 7px; color: rgba(255,255,255,0.85); font-size: 14px;
-      cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;
-    }
-    .btn-setting:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.85); }
+        .login-box input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
 
-    #sidebar-overlay { display: none; position: fixed; inset: 0; z-index: 180; }
-    #sidebar-overlay.show { display: block; }
+        .login-box input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
 
-    .loading-bar {
-      position: fixed; top: 0; left: 0;
-      height: 3px; width: 0%; background: #5ba3f5; z-index: 300;
-    }
-    .loading-bar.running { animation: loadAnim 1.8s ease-in-out infinite; }
-    @keyframes loadAnim {
-      0%   { width: 0%;   opacity: 1; }
-      70%  { width: 85%;  opacity: 1; }
-      100% { width: 100%; opacity: 0; }
-    }
+        .login-box button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
 
-    .overlay {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,0.6); z-index: 400;
-      align-items: center; justify-content: center;
-    }
-    .overlay.show { display: flex; }
-    .modal {
-      background: #1a2e47; border-radius: 12px; padding: 24px;
-      width: 92%; max-width: 420px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-    .modal h2 { color: #fff; font-size: 15px; font-weight: 600; margin-bottom: 18px; }
-    .modal label { display: block; color: rgba(255,255,255,0.6); font-size: 12px; margin-bottom: 5px; margin-top: 14px; }
-    .modal label:first-of-type { margin-top: 0; }
-    .modal input {
-      width: 100%; padding: 9px 12px;
-      background: rgba(255,255,255,0.07);
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 7px; color: #fff; font-size: 13px; outline: none; transition: border 0.2s;
-    }
-    .modal input:focus { border-color: #5ba3f5; }
-    .modal input::placeholder { color: rgba(255,255,255,0.3); }
-    .modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
-    .btn-cancel {
-      padding: 8px 18px; background: rgba(255,255,255,0.07);
-      color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 7px; cursor: pointer; font-size: 13px; transition: all 0.2s;
-    }
-    .btn-cancel:hover { background: rgba(255,255,255,0.13); }
-    .btn-ok {
-      padding: 8px 22px; background: #2563a8; color: #fff;
-      border: none; border-radius: 7px; cursor: pointer; font-size: 13px;
-      font-weight: 600; transition: background 0.2s;
-    }
-    .btn-ok:hover { background: #3578c8; }
+        .login-box button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
 
-    .setting-panel {
-      background: #1a2e47; border-radius: 12px; padding: 24px;
-      width: 92%; max-width: 480px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-      border: 1px solid rgba(255,255,255,0.1);
-      max-height: 85vh; overflow-y: auto;
-    }
-    .setting-panel h2 { color: #fff; font-size: 15px; font-weight: 600; margin-bottom: 6px; }
-    .setting-panel p { color: rgba(255,255,255,0.4); font-size: 12px; margin-bottom: 18px; }
-    .tab-list-item {
-      display: flex; align-items: center; gap: 10px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 8px; padding: 10px 12px; margin-bottom: 8px;
-    }
-    .tab-list-item .drag-handle { color: rgba(255,255,255,0.3); cursor: grab; font-size: 16px; user-select: none; flex-shrink: 0; }
-    .tab-list-item .drag-handle:active { cursor: grabbing; }
-    .tab-list-item .tab-info { flex: 1; min-width: 0; }
-    .tab-list-item .tab-info .tab-name { color: #fff; font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .tab-list-item .tab-info .tab-url { color: rgba(255,255,255,0.35); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .tab-list-item .item-actions { display: flex; gap: 6px; flex-shrink: 0; }
-    .btn-edit-tab, .btn-delete-tab { padding: 5px 10px; border-radius: 6px; border: none; cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.2s; }
-    .btn-edit-tab { background: rgba(91,163,245,0.2); color: #5ba3f5; }
-    .btn-edit-tab:hover { background: rgba(91,163,245,0.35); }
-    .btn-delete-tab { background: rgba(220,80,80,0.2); color: #f07070; }
-    .btn-delete-tab:hover { background: rgba(220,80,80,0.35); }
-    .btn-add-tab {
-      width: 100%; margin-top: 12px; padding: 10px;
-      background: rgba(37,99,168,0.3); color: #5ba3f5;
-      border: 1px dashed rgba(91,163,245,0.4);
-      border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s;
-    }
-    .btn-add-tab:hover { background: rgba(37,99,168,0.5); }
-    .setting-close {
-      width: 100%; margin-top: 16px; padding: 9px;
-      background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.6);
-      border: 1px solid rgba(255,255,255,0.13);
-      border-radius: 8px; cursor: pointer; font-size: 13px; transition: all 0.2s;
-    }
-    .setting-close:hover { background: rgba(255,255,255,0.13); }
-    .tab-list-item.dragging { opacity: 0.4; }
-    .tab-list-item.drag-over { border-color: #5ba3f5; background: rgba(91,163,245,0.1); }
-  </style>
+        .login-error {
+            color: #e74c3c;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            display: none;
+        }
+
+        /* ============ MAIN APP ============ */
+        .app-container {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            flex-direction: row;
+            background: #f5f5f5;
+        }
+
+        /* ============ SIDEBAR/NAVIGATION ============ */
+        .navbar-container {
+            position: relative;
+        }
+
+        .navbar-toggle {
+            position: fixed;
+            background: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 2000;
+            transition: top 0.3s, left 0.3s, right 0.3s, bottom 0.3s, box-shadow 0.3s;
+        }
+
+        .navbar-toggle:hover {
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .navbar-toggle span {
+            width: 20px;
+            height: 2px;
+            background: #333;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+
+        .navbar-toggle.active span:nth-child(1) {
+            transform: rotate(45deg) translate(8px, 8px);
+        }
+
+        .navbar-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .navbar-toggle.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(8px, -8px);
+        }
+
+        /* ============ NAVBAR TAB MODE ============ */
+        .navbar-tabs-wrapper {
+            position: fixed;
+            background: white;
+            border-radius: 22px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+            z-index: 1500;
+            flex-direction: row;
+            align-items: center;
+            height: 45px;
+            overflow: hidden;
+        }
+
+        .navbar-tabs {
+            flex: 1;
+            display: flex;
+            flex-direction: row;
+            overflow-x: auto;
+            min-height: 46px;
+        }
+
+        .navbar-tabs-actions {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            padding: 0 8px;
+            gap: 4px;
+            border-left: 1px solid #eee;
+            flex-shrink: 0;
+        }
+
+        .tabs-action-btn {
+            padding: 8px 14px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            color: #555;
+            border-radius: 4px;
+            white-space: nowrap;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .tabs-action-btn:hover {
+            background: #f0f4ff;
+            color: #667eea;
+        }
+
+        .tabs-action-btn.logout:hover {
+            background: #fdf0f0;
+            color: #e74c3c;
+        }
+
+        .nav-item {
+            padding: 0 20px;
+            height: 45px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            border-bottom: 3px solid transparent;
+            color: #666;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-item:hover {
+            color: #667eea;
+            background: #f9f9f9;
+        }
+
+        .nav-item.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .nav-item-close {
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            padding: 0 5px;
+            margin-left: 10px;
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .nav-item-close:hover {
+            color: #e74c3c;
+        }
+
+        /* ============ NAVBAR PANEL MODE ============ */
+        .navbar-panel {
+            position: fixed;
+            top: 0;
+            left: -168px;
+            width: 168px;
+            height: 100vh;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1500;
+            transition: left 0.3s;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .navbar-panel.active {
+            left: 0;
+        }
+
+        .navbar-panel.right-side {
+            left: auto;
+            right: -168px;
+            transition: right 0.3s;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-panel.right-side.active {
+            left: auto;
+            right: 0;
+        }
+
+        .navbar-panel.panel-mode {
+            display: flex;
+        }
+
+        .panel-header {
+            padding: 20px;
+            padding-left: 75px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-panel.right-side .panel-header {
+            padding: 20px;
+            padding-right: 75px;
+        }
+
+        .panel-header h3 {
+            color: #333;
+            font-size: 18px;
+        }
+
+        .panel-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .panel-items {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 0;
+        }
+
+        .panel-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            border-left: 4px solid transparent;
+            color: #666;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-item:hover {
+            background: #f9f9f9;
+            color: #667eea;
+        }
+
+        .panel-item.active {
+            background: #f0f4ff;
+            color: #667eea;
+            border-left-color: #667eea;
+        }
+
+        .panel-item-actions {
+            display: flex;
+            gap: 8px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .panel-item:hover .panel-item-actions {
+            opacity: 1;
+        }
+
+        .panel-item-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #999;
+            font-size: 16px;
+            padding: 0 5px;
+        }
+
+        .panel-item-btn:hover {
+            color: #667eea;
+        }
+
+        .panel-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* ============ SETTINGS MODAL ============ */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: #333;
+            font-size: 20px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .button-group button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #eee;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #ddd;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        /* ============ CONTENT AREA ============ */
+        .content-area {
+            flex: 1;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        .content-area.panel-open {
+            margin-left: 0;
+        }
+
+        .iframe-container {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        .empty-state {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            color: #999;
+            font-size: 16px;
+        }
+
+        /* ============ DRAG AND DROP ============ */
+        .dragging {
+            opacity: 0.5;
+        }
+
+        .modal-info {
+            background: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 13px;
+        }
+
+        .tabs-list, .order-list {
+            margin: 15px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .tabs-list-item, .order-item {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+            background: #f9f9f9;
+        }
+
+        .tabs-list-item:last-child, .order-item:last-child {
+            border-bottom: none;
+        }
+
+        .tabs-list-item:hover, .order-item:hover {
+            background: #f0f4ff;
+        }
+
+        .tabs-list-item.dragging, .order-item.dragging {
+            opacity: 0.5;
+            background: #e8e8e8;
+        }
+
+        .order-item-name {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .drag-handle {
+            cursor: grab;
+            color: #999;
+            font-size: 18px;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .item-actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #999;
+            font-size: 16px;
+            padding: 5px;
+        }
+
+        .item-actions button:hover {
+            color: #e74c3c;
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 10px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .logout-btn:hover {
+            background: #c0392b;
+        }
+    </style>
 </head>
 <body>
 
-<div class="loading-bar" id="loadBar"></div>
-<iframe id="main-frame" src="" allow="fullscreen"></iframe>
-<div id="menu-trigger" onclick="toggleSidebar()">
-  <span></span><span></span><span></span>
-</div>
-<div id="sidebar-overlay" onclick="closeSidebar()"></div>
-
-<div id="sidebar">
-  <div class="sidebar-header">
-    <span>Menu</span>
-    <button onclick="closeSidebar()">✕</button>
-  </div>
-  <div class="tab-list" id="sidebarTabList"></div>
-  <div class="sidebar-footer">
-    <button class="btn-setting" onclick="openSetting()">⚙️ <span>Pengaturan Tab</span></button>
-  </div>
-</div>
-
-<div class="overlay" id="modalOverlay">
-  <div class="modal">
-    <h2 id="modalTitle">Tambah Tab Baru</h2>
-    <label>Nama Tab</label>
-    <input type="text" id="inputNama" placeholder="contoh: 🎱 Panel" />
-    <label>Alamat URL</label>
-    <input type="text" id="inputUrl" placeholder="https://script.google.com/..." />
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal()">Batal</button>
-      <button class="btn-ok" onclick="submitModal()">OK</button>
-    </div>
-  </div>
-</div>
-
-<div class="overlay" id="settingOverlay">
-  <div class="setting-panel">
-    <h2>⚙️ Pengaturan Tab</h2>
-    <p>Seret ☰ untuk mengubah urutan tab</p>
-    <div id="tabListContainer"></div>
-    <button class="btn-add-tab" onclick="openAddModal()">+ Tambah Tab Baru</button>
-    <button class="setting-close" onclick="closeSetting()">Tutup</button>
-  </div>
-</div>
-
-<script>
-  // Daftar tab yang punya nav bar bawah fixed — iframe akan dikecilkan
-  // supaya nav bar tidak terpotong. Tambahkan URL lain di sini jika perlu.
-  const BOTTOM_NAV_URLS = [
-    'AKfycbx1kEoApR5cR2FXGNC-1vwyGfKN3DcNOITgzsqYvIZDMP1cBVYEenuH0f64zCZk-0Rx'
-  ];
-
-  const DEFAULT_TABS = [
-    { nama: '🎱 Panel', url: 'https://script.google.com/macros/s/AKfycbxExCm3bnQHJhwmt0Blezj413TGPiqH46Hi17Y0LYuWkmMzShqSc8x4iiJ0J9FkL8smhw/exec' },
-    { nama: '⏱ Break', url: 'https://script.google.com/macros/s/AKfycbxc5_W2VLcGxORb7bYPu4_-amQM4KHZ0BWvFmaH3eXoW0sk67i4e5EYHvWMlVKd8E4X/exec?page=admin' },
-    { nama: '📦 Stok Bar', url: 'https://script.google.com/macros/s/AKfycbx1kEoApR5cR2FXGNC-1vwyGfKN3DcNOITgzsqYvIZDMP1cBVYEenuH0f64zCZk-0Rx/exec' }
-  ];
-
-  let tabs = [], activeIndex = 0, editIndex = -1, dragSrcIndex = -1;
-  const frame = document.getElementById('main-frame');
-  const loadBar = document.getElementById('loadBar');
-  const sidebar = document.getElementById('sidebar');
-  const sidebarOverlay = document.getElementById('sidebar-overlay');
-
-  function hasBottomNav(url) {
-    return BOTTOM_NAV_URLS.some(id => url.includes(id));
-  }
-
-  function loadTabs() {
-    try {
-      const saved = localStorage.getItem('gg_tabs');
-      tabs = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(DEFAULT_TABS));
-    } catch(e) { tabs = JSON.parse(JSON.stringify(DEFAULT_TABS)); }
-  }
-  function saveTabs() { localStorage.setItem('gg_tabs', JSON.stringify(tabs)); }
-
-  function renderSidebarTabs() {
-    const list = document.getElementById('sidebarTabList');
-    list.innerHTML = '';
-    tabs.forEach((tab, i) => {
-      const item = document.createElement('div');
-      item.className = 'tab-item' + (i === activeIndex ? ' active' : '');
-      // Pisah emoji/icon (karakter pertama) dan teks nama
-      const namaStr = tab.nama;
-      const iconMatch = namaStr.match(/^(\p{Emoji_Presentation}|\p{Extended_Pictographic}|[^\w\s])\s*/u);
-      const icon = iconMatch ? iconMatch[0].trim() : '';
-      const label = iconMatch ? namaStr.slice(iconMatch[0].length) : namaStr;
-      item.innerHTML = `<span class="tab-icon">${escHtml(icon)}</span><span class="tab-label">${escHtml(label)}</span>`;
-      item.onclick = () => { switchTab(i); closeSidebar(); };
-      list.appendChild(item);
-    });
-  }
-
-  function switchTab(index) {
-    activeIndex = index;
-    renderSidebarTabs();
-    loadBar.classList.add('running');
-    const url = tabs[index].url;
-    // Kalau tab ini punya nav bar bawah fixed, kecilkan iframe
-    if (hasBottomNav(url)) {
-      frame.classList.add('mode-bar');
-    } else {
-      frame.classList.remove('mode-bar');
-    }
-    frame.src = url;
-  }
-
-  frame.addEventListener('load', () => {
-    loadBar.classList.remove('running');
-    loadBar.style.width = '0%';
-  });
-
-  function toggleSidebar() { sidebar.classList.contains('open') ? closeSidebar() : openSidebar(); }
-  function openSidebar() { sidebar.classList.add('open'); sidebarOverlay.classList.add('show'); }
-  function closeSidebar() { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('show'); }
-
-  function openAddModal() {
-    editIndex = -1;
-    document.getElementById('modalTitle').textContent = 'Tambah Tab Baru';
-    document.getElementById('inputNama').value = '';
-    document.getElementById('inputUrl').value = '';
-    document.getElementById('settingOverlay').classList.remove('show');
-    document.getElementById('modalOverlay').classList.add('show');
-    document.getElementById('inputNama').focus();
-  }
-  function openEditModal(i) {
-    editIndex = i;
-    document.getElementById('modalTitle').textContent = 'Edit Tab';
-    document.getElementById('inputNama').value = tabs[i].nama;
-    document.getElementById('inputUrl').value = tabs[i].url;
-    document.getElementById('settingOverlay').classList.remove('show');
-    document.getElementById('modalOverlay').classList.add('show');
-    document.getElementById('inputNama').focus();
-  }
-  function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); editIndex = -1; }
-  function submitModal() {
-    const nama = document.getElementById('inputNama').value.trim();
-    const url  = document.getElementById('inputUrl').value.trim();
-    if (!nama || !url) { alert('Nama dan URL wajib diisi.'); return; }
-    if (editIndex === -1) { tabs.push({ nama, url }); activeIndex = tabs.length - 1; }
-    else { tabs[editIndex] = { nama, url }; if (activeIndex === editIndex) frame.src = url; }
-    saveTabs(); renderSidebarTabs(); closeModal();
-    if (editIndex === -1) switchTab(activeIndex);
-  }
-
-  function openSetting() { closeSidebar(); renderTabList(); document.getElementById('settingOverlay').classList.add('show'); }
-  function closeSetting() { document.getElementById('settingOverlay').classList.remove('show'); }
-  function renderTabList() {
-    const container = document.getElementById('tabListContainer');
-    container.innerHTML = '';
-    tabs.forEach((tab, i) => {
-      const item = document.createElement('div');
-      item.className = 'tab-list-item'; item.draggable = true; item.dataset.index = i;
-      item.innerHTML = `
-        <span class="drag-handle">☰</span>
-        <div class="tab-info">
-          <div class="tab-name">${escHtml(tab.nama)}</div>
-          <div class="tab-url">${escHtml(tab.url)}</div>
+    <!-- ============ LOGIN PAGE ============ -->
+    <div class="login-container" id="loginContainer">
+        <div class="login-box">
+            <div class="form-group">
+                <label for="username">USERNAME:</label>
+                <input type="text" id="username" placeholder="Masukkan username">
+            </div>
+            <div class="form-group">
+                <label for="password">PASSWORD:</label>
+                <input type="password" id="password" placeholder="Masukkan password">
+            </div>
+            <button onclick="handleLogin()">LOGIN</button>
+            <div class="login-error" id="loginError">Username atau password salah</div>
         </div>
-        <div class="item-actions">
-          <button class="btn-edit-tab" onclick="openEditModal(${i})">Edit</button>
-          <button class="btn-delete-tab" onclick="deleteTab(${i})">Hapus</button>
-        </div>`;
-      item.addEventListener('dragstart', e => { dragSrcIndex = i; setTimeout(() => item.classList.add('dragging'), 0); e.dataTransfer.effectAllowed = 'move'; });
-      item.addEventListener('dragend', () => { item.classList.remove('dragging'); document.querySelectorAll('.tab-list-item').forEach(el => el.classList.remove('drag-over')); });
-      item.addEventListener('dragover', e => { e.preventDefault(); document.querySelectorAll('.tab-list-item').forEach(el => el.classList.remove('drag-over')); item.classList.add('drag-over'); });
-      item.addEventListener('drop', e => {
-        e.preventDefault(); if (dragSrcIndex === i) return;
-        const moved = tabs.splice(dragSrcIndex, 1)[0]; tabs.splice(i, 0, moved);
-        if (activeIndex === dragSrcIndex) activeIndex = i;
-        else if (dragSrcIndex < activeIndex && i >= activeIndex) activeIndex--;
-        else if (dragSrcIndex > activeIndex && i <= activeIndex) activeIndex++;
-        saveTabs(); renderSidebarTabs(); renderTabList();
-      });
-      container.appendChild(item);
-    });
-  }
-  function deleteTab(i) {
-    if (!confirm(`Hapus tab "${tabs[i].nama}"?`)) return;
-    tabs.splice(i, 1);
-    if (activeIndex >= tabs.length) activeIndex = tabs.length - 1;
-    saveTabs(); renderSidebarTabs();
-    if (tabs.length > 0) switchTab(activeIndex);
-    renderTabList();
-  }
-  function escHtml(str) { return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    </div>
 
-  document.getElementById('inputUrl').addEventListener('keydown', e => { if (e.key === 'Enter') submitModal(); });
-  document.getElementById('modalOverlay').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
-  document.getElementById('settingOverlay').addEventListener('click', function(e) { if (e.target === this) closeSetting(); });
+    <!-- ============ MAIN APP ============ -->
+    <div class="app-container" id="appContainer">
+        
+        <!-- NAVBAR TOGGLE BUTTON -->
+        <button class="navbar-toggle" id="navbarToggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
 
-  loadTabs();
-  renderSidebarTabs();
-  if (tabs.length > 0) switchTab(0);
-</script>
+        <!-- NAVBAR TABS MODE -->
+        <div class="navbar-tabs-wrapper" id="navbarTabsWrapper" style="display:none;">
+            <div class="navbar-tabs" id="navbarTabs"></div>
+            <div class="navbar-tabs-actions">
+                <button class="tabs-action-btn" onclick="openSettings()" title="Pengaturan">&#9881; Pengaturan</button>
+                <button class="tabs-action-btn logout" onclick="handleLogout()" title="Logout">Logout</button>
+            </div>
+        </div>
+
+        <!-- OVERLAY untuk tutup panel saat klik di luar -->
+        <div id="panelOverlay" onclick="closePanel()" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:1499;"></div>
+
+        <!-- NAVBAR PANEL MODE -->
+        <div class="navbar-panel panel-mode" id="navbarPanel">
+            <div class="panel-header">
+                <h3>Menu</h3>
+            </div>
+            <div class="panel-items" id="panelItems"></div>
+            <div class="panel-footer">
+                <button class="btn-primary" onclick="openSettings()">⚙️ Pengaturan</button>
+                <button class="logout-btn" onclick="handleLogout()">Logout</button>
+            </div>
+        </div>
+
+        <!-- CONTENT AREA -->
+        <div class="content-area" id="contentArea">
+            <div class="empty-state">Pilih menu untuk membuka modul</div>
+        </div>
+    </div>
+
+    <!-- ============ SETTINGS MODAL ============ -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Pengaturan</h2>
+                <button class="modal-close" onclick="closeSettings()">✕</button>
+            </div>
+
+            <!-- TAB 1: MODE SETTINGS -->
+            <div id="modeTab">
+                <h3 style="margin-bottom: 15px; color: #333;">Pilih Mode Tampilan</h3>
+                <div class="form-group">
+                    <label style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; padding:10px 12px; border:1px solid #ddd; border-radius:8px;">
+                        <span>Top Bar (Atas)</span>
+                        <input type="radio" name="navbarMode" value="tabs" onchange="changeNavbarMode('tabs')" style="width:16px;height:16px;accent-color:#667eea;">
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; padding:10px 12px; border:1px solid #ddd; border-radius:8px;">
+                        <span>Side Panel (Sidebar)</span>
+                        <input type="radio" name="navbarMode" value="panel" onchange="changeNavbarMode('panel')" style="width:16px;height:16px;accent-color:#667eea;">
+                    </label>
+                </div>
+            </div>
+
+            <!-- POSISI MENU -->
+            <div id="positionTab" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+                <h3 style="margin-bottom: 15px; color: #333;">Posisi Icon Menu</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <label style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; padding:10px 12px; border:1px solid #ddd; border-radius:8px;">
+                        <span>&#8598; Atas Kiri</span>
+                        <input type="radio" name="menuPos" value="top-left" onchange="applyMenuPosition('top-left')" style="width:16px;height:16px;accent-color:#667eea;">
+                    </label>
+                    <label style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; padding:10px 12px; border:1px solid #ddd; border-radius:8px;">
+                        <span>&#8599; Atas Kanan</span>
+                        <input type="radio" name="menuPos" value="top-right" onchange="applyMenuPosition('top-right')" style="width:16px;height:16px;accent-color:#667eea;">
+                    </label>
+                    <label style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; padding:10px 12px; border:1px solid #ddd; border-radius:8px;">
+                        <span>&#8601; Bawah Kiri</span>
+                        <input type="radio" name="menuPos" value="bottom-left" onchange="applyMenuPosition('bottom-left')" style="width:16px;height:16px;accent-color:#667eea;">
+                    </label>
+                    <label style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; padding:10px 12px; border:1px solid #ddd; border-radius:8px;">
+                        <span>&#8600; Bawah Kanan</span>
+                        <input type="radio" name="menuPos" value="bottom-right" onchange="applyMenuPosition('bottom-right')" style="width:16px;height:16px;accent-color:#667eea;">
+                    </label>
+                </div>
+            </div>
+
+            <!-- TAB 2: ADD TAB -->
+            <div id="addTabTab" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+                <h3 style="margin-bottom: 15px; color: #333;">Tambah Tab Baru</h3>
+                <div class="form-group">
+                    <label for="tabName">Nama Tab:</label>
+                    <input type="text" id="tabName" placeholder="Contoh: Dashboard">
+                </div>
+                <div class="form-group">
+                    <label for="tabUrl">Alamat URL:</label>
+                    <input type="text" id="tabUrl" placeholder="Contoh: https://example.com">
+                </div>
+                <div id="addTabError" style="display:none; color:#e74c3c; font-size:13px; margin-bottom:8px;"></div>
+                <button class="btn-primary" onclick="addNewTab()" style="width: 100%; padding: 10px;">Tambah Tab</button>
+            </div>
+
+            <!-- TAB 3: MANAGE TABS -->
+            <div id="manageTabTab" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+                <h3 style="margin-bottom: 15px; color: #333;">Kelola Tab</h3>
+                <div class="modal-info">
+                    Drag tab untuk mengubah urutan. Klik ikon untuk menghapus atau edit.
+                </div>
+                <div class="tabs-list" id="tabsList"></div>
+            </div>
+
+            <!-- FOOTER -->
+            <div class="button-group" style="margin-top: 30px; margin-bottom: 0;">
+                <button class="btn-secondary" onclick="closeSettings()">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============ STATE MANAGEMENT ============
+        const state = {
+            currentUser: null,
+            navbarMode: localStorage.getItem('navbarMode') || 'tabs',
+            tabs: JSON.parse(localStorage.getItem('appTabs')) || [],
+            currentTab: localStorage.getItem('currentTab') || null,
+            menuPosition: localStorage.getItem('menuPosition') || 'top-left',
+            appsScriptUrl: 'https://script.google.com/macros/s/AKfycbwGA4XdpF4aM3ZU7taVfUX474BEcXC9k1YubzxghQJq_jgFU3meT5H1PGcbu8HOGPkcOQ/exec'
+        };
+
+        // ============ INITIALIZATION ============
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeApp();
+            setupEventListeners();
+        });
+
+        function initializeApp() {
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                state.currentUser = JSON.parse(savedUser);
+                showApp();
+            } else {
+                showLogin();
+            }
+        }
+
+        function setupEventListeners() {
+            // Navbar toggle
+            document.getElementById('navbarToggle').addEventListener('click', toggleNavbar);
+            
+            // Panel close
+            
+            // Modal outside click
+            document.getElementById('settingsModal').addEventListener('click', (e) => {
+                if (e.target.id === 'settingsModal') closeSettings();
+            });
+
+            // Enter key on login
+            document.getElementById('password').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleLogin();
+            });
+        }
+
+        // ============ LOGIN LOGIC ============
+        async function handleLogin() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const errorEl = document.getElementById('loginError');
+            const loginBtn = document.querySelector('.login-box button');
+
+            if (!username || !password) {
+                errorEl.textContent = 'Username dan password harus diisi';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            errorEl.style.display = 'none';
+            loginBtn.textContent = 'Memeriksa...';
+            loginBtn.disabled = true;
+
+            try {
+                const url = `${state.appsScriptUrl}?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`;
+                const response = await fetch(url, { method: 'GET', mode: 'cors' });
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const data = await response.json();
+
+                if (data.success === true) {
+                    state.currentUser = username;
+                    localStorage.setItem('currentUser', JSON.stringify(username));
+                    showApp();
+                    document.getElementById('username').value = '';
+                    document.getElementById('password').value = '';
+                } else {
+                    errorEl.textContent = 'Username atau password salah';
+                    errorEl.style.display = 'block';
+                }
+
+            } catch (error) {
+                console.error('Login error:', error);
+                errorEl.textContent = `Gagal login: ${error.message}`;
+                errorEl.style.display = 'block';
+            } finally {
+                loginBtn.textContent = 'LOGIN';
+                loginBtn.disabled = false;
+            }
+        }
+
+        function handleLogout() {
+            if (true) {
+                localStorage.removeItem('currentUser');
+                state.currentUser = null;
+                document.getElementById('appContainer').style.display = 'none';
+                document.getElementById('loginContainer').style.display = 'flex';
+                closePanel();
+            }
+        }
+
+        // ============ UI SWITCHING ============
+        function showLogin() {
+            document.getElementById('loginContainer').style.display = 'flex';
+            document.getElementById('appContainer').style.display = 'none';
+        }
+
+        function showApp() {
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'flex';
+            applyMenuPosition(state.menuPosition);
+            setNavbarMode(state.navbarMode);
+            renderNavbar();
+        }
+
+        function applyMenuPosition(pos) {
+            state.menuPosition = pos;
+            localStorage.setItem('menuPosition', pos);
+
+            const toggle = document.getElementById('navbarToggle');
+            const wrapper = document.getElementById('navbarTabsWrapper');
+            const panel = document.getElementById('navbarPanel');
+            const isBottom = pos === 'bottom-left' || pos === 'bottom-right';
+            const isRight = pos === 'top-right' || pos === 'bottom-right';
+
+            // Reset semua posisi
+            toggle.style.top = '';
+            toggle.style.left = '';
+            toggle.style.right = '';
+            toggle.style.bottom = '';
+
+            if (pos === 'top-left') {
+                toggle.style.top = '15px';
+                toggle.style.left = '15px';
+            } else if (pos === 'top-right') {
+                toggle.style.top = '15px';
+                toggle.style.right = '15px';
+            } else if (pos === 'bottom-left') {
+                toggle.style.bottom = '15px';
+                toggle.style.left = '15px';
+            } else if (pos === 'bottom-right') {
+                toggle.style.bottom = '15px';
+                toggle.style.right = '15px';
+            }
+
+            // Tab bar wrapper ikut posisi
+            wrapper.style.top = '';
+            wrapper.style.bottom = '';
+            wrapper.style.left = '';
+            wrapper.style.right = '';
+
+            if (isBottom) {
+                wrapper.style.bottom = '15px';
+            } else {
+                wrapper.style.top = '15px';
+            }
+
+            if (isRight) {
+                wrapper.style.left = '15px';
+                wrapper.style.right = '75px';
+            } else {
+                wrapper.style.left = '75px';
+                wrapper.style.right = '15px';
+            }
+
+            // Panel sidebar dari kiri atau kanan
+            if (isRight) {
+                panel.classList.add('right-side');
+            } else {
+                panel.classList.remove('right-side');
+            }
+
+            // Update radio di settings jika sudah terbuka
+            const radios = document.querySelectorAll('input[name="menuPos"]');
+            radios.forEach(r => r.checked = (r.value === pos));
+        }
+
+        // ============ NAVBAR MODE ============
+        function setNavbarMode(mode) {
+            state.navbarMode = mode;
+            localStorage.setItem('navbarMode', mode);
+
+            const wrapper = document.getElementById('navbarTabsWrapper');
+            const panel = document.getElementById('navbarPanel');
+
+            setNavbarOpen(false);
+            renderNavbar();
+        }
+
+        function changeNavbarMode(mode) {
+            setNavbarMode(mode);
+            document.querySelector(`input[value="${mode}"]`).checked = true;
+        }
+
+        // ============ NAVBAR RENDERING ============
+        function renderNavbar() {
+            if (state.navbarMode === 'tabs') {
+                renderTabMode();
+            } else {
+                renderPanelMode();
+            }
+        }
+
+        function renderTabMode() {
+            const tabsContainer = document.getElementById('navbarTabs');
+            tabsContainer.innerHTML = '';
+
+            state.tabs.forEach((tab, index) => {
+                const tabEl = document.createElement('button');
+                tabEl.className = 'nav-item' + (tab.name === state.currentTab ? ' active' : '');
+                tabEl.innerHTML = `<strong>${tab.name}</strong>`;
+                tabEl.onclick = () => selectTab(tab.name);
+                tabsContainer.appendChild(tabEl);
+            });
+
+            if (state.tabs.length === 0) {
+                const emptyEl = document.createElement('div');
+                emptyEl.style.padding = '12px 20px';
+                emptyEl.style.color = '#999';
+                emptyEl.style.fontSize = '14px';
+                emptyEl.textContent = 'Tidak ada tab. Buka pengaturan untuk menambah.';
+                tabsContainer.appendChild(emptyEl);
+            }
+        }
+
+        function renderPanelMode() {
+            const itemsContainer = document.getElementById('panelItems');
+            itemsContainer.innerHTML = '';
+
+            state.tabs.forEach((tab) => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'panel-item' + (tab.name === state.currentTab ? ' active' : '');
+                itemEl.innerHTML = `<strong>${tab.name}</strong>`;
+                itemEl.onclick = () => selectTab(tab.name);
+                itemsContainer.appendChild(itemEl);
+            });
+
+            if (state.tabs.length === 0) {
+                const emptyEl = document.createElement('div');
+                emptyEl.style.padding = '20px';
+                emptyEl.style.color = '#999';
+                emptyEl.style.fontSize = '14px';
+                emptyEl.style.textAlign = 'center';
+                emptyEl.textContent = 'Tidak ada menu. Buka pengaturan untuk menambah.';
+                itemsContainer.appendChild(emptyEl);
+            }
+        }
+
+        // ============ TAB MANAGEMENT ============
+        function selectTab(tabName) {
+            state.currentTab = tabName;
+            localStorage.setItem('currentTab', tabName);
+            
+            const contentArea = document.getElementById('contentArea');
+            const tab = state.tabs.find(t => t.name === tabName);
+            
+            if (tab && tab.url) {
+                contentArea.innerHTML = `<iframe src="${tab.url}" class="iframe-container"></iframe>`;
+            } else {
+                contentArea.innerHTML = '<div class="empty-state">URL tidak valid</div>';
+            }
+            
+            renderNavbar();
+            closePanel();
+        }
+
+        function addNewTab() {
+            const name = document.getElementById('tabName').value.trim();
+            const url = document.getElementById('tabUrl').value.trim();
+            const errEl = document.getElementById('addTabError');
+
+            if (!name || !url) {
+                errEl.textContent = 'Nama tab dan URL harus diisi';
+                errEl.style.display = 'block';
+                return;
+            }
+
+            if (state.tabs.some(t => t.name === name)) {
+                errEl.textContent = 'Nama tab sudah ada';
+                errEl.style.display = 'block';
+                return;
+            }
+            errEl.style.display = 'none';
+
+            state.tabs.push({ name, url });
+            saveTabs();
+            document.getElementById('tabName').value = '';
+            document.getElementById('tabUrl').value = '';
+            // tab berhasil ditambahkan
+            renderNavbar();
+            renderManageTabsList();
+        }
+
+        function removeTab(tabName) {
+            confirmDelete(tabName);
+        }
+
+
+
+        function saveTabs() {
+            localStorage.setItem('appTabs', JSON.stringify(state.tabs));
+        }
+
+        // ============ SETTINGS MODAL ============
+        function openSettings() {
+            document.getElementById('settingsModal').classList.add('active');
+            document.querySelector(`input[name="navbarMode"][value="${state.navbarMode}"]`).checked = true;
+            const posRadio = document.querySelector(`input[name="menuPos"][value="${state.menuPosition}"]`);
+            if (posRadio) posRadio.checked = true;
+            renderManageTabsList();
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.remove('active');
+        }
+
+        function renderManageTabsList() {
+            const list = document.getElementById('tabsList');
+            list.innerHTML = '';
+
+            state.tabs.forEach((tab, index) => {
+                const item = document.createElement('div');
+                item.className = 'tabs-list-item';
+                item.draggable = true;
+                item.dataset.index = index;
+                item.innerHTML = `
+                    <span class="drag-handle">≡</span>
+                    <span style="flex: 1; margin-left: 10px; font-weight: 600;">${tab.name}</span>
+                    <div class="item-actions">
+                        <button onclick="showInlineEdit('${tab.name}')" title="Edit">✏️</button>
+                        <button onclick="showInlineDelete('${tab.name}')" title="Hapus">🗑️</button>
+                    </div>
+                `;
+
+                item.addEventListener('dragstart', handleDragStart);
+                item.addEventListener('dragover', handleDragOver);
+                item.addEventListener('drop', handleDrop);
+                item.addEventListener('dragend', handleDragEnd);
+
+                list.appendChild(item);
+
+                // Inline edit form (tersembunyi)
+                const editRow = document.createElement('div');
+                editRow.id = `edit-row-${index}`;
+                editRow.style.cssText = 'display:none; padding:10px 12px; background:#f9f9f9; border-bottom:1px solid #eee; flex-direction:column; gap:6px;';
+                editRow.innerHTML = `
+                    <input id="edit-name-${index}" type="text" value="${tab.name}" placeholder="Nama Tab" style="padding:7px;border:1px solid #ddd;border-radius:4px;font-size:13px;width:100%;">
+                    <input id="edit-url-${index}" type="text" value="${tab.url}" placeholder="URL" style="padding:7px;border:1px solid #ddd;border-radius:4px;font-size:13px;width:100%;">
+                    <div id="edit-err-${index}" style="display:none;color:#e74c3c;font-size:12px;"></div>
+                    <div style="display:flex;gap:6px;">
+                        <button onclick="saveInlineEdit('${tab.name}', ${index})" style="flex:1;padding:7px;background:#667eea;color:white;border:none;border-radius:4px;cursor:pointer;font-size:13px;">Simpan</button>
+                        <button onclick="cancelInlineEdit(${index})" style="flex:1;padding:7px;background:#eee;color:#333;border:none;border-radius:4px;cursor:pointer;font-size:13px;">Batal</button>
+                    </div>
+                `;
+                list.appendChild(editRow);
+
+                // Inline delete confirm (tersembunyi)
+                const delRow = document.createElement('div');
+                delRow.id = `del-row-${index}`;
+                delRow.style.cssText = 'display:none; padding:10px 12px; background:#fff5f5; border-bottom:1px solid #eee; flex-direction:column; gap:6px;';
+                delRow.innerHTML = `
+                    <span style="font-size:13px;color:#c0392b;">Hapus tab <strong>${tab.name}</strong>?</span>
+                    <div style="display:flex;gap:6px;">
+                        <button onclick="confirmDelete('${tab.name}')" style="flex:1;padding:7px;background:#e74c3c;color:white;border:none;border-radius:4px;cursor:pointer;font-size:13px;">Hapus</button>
+                        <button onclick="cancelInlineDelete(${index})" style="flex:1;padding:7px;background:#eee;color:#333;border:none;border-radius:4px;cursor:pointer;font-size:13px;">Batal</button>
+                    </div>
+                `;
+                list.appendChild(delRow);
+            });
+        }
+
+        function showInlineEdit(tabName) {
+            const idx = state.tabs.findIndex(t => t.name === tabName);
+            closeAllInlineRows();
+            const row = document.getElementById(`edit-row-${idx}`);
+            if (row) row.style.display = 'flex';
+        }
+
+        function showInlineDelete(tabName) {
+            const idx = state.tabs.findIndex(t => t.name === tabName);
+            closeAllInlineRows();
+            const row = document.getElementById(`del-row-${idx}`);
+            if (row) row.style.display = 'flex';
+        }
+
+        function closeAllInlineRows() {
+            document.querySelectorAll('[id^="edit-row-"], [id^="del-row-"]').forEach(el => el.style.display = 'none');
+        }
+
+        function cancelInlineEdit(idx) {
+            document.getElementById(`edit-row-${idx}`).style.display = 'none';
+        }
+
+        function cancelInlineDelete(idx) {
+            document.getElementById(`del-row-${idx}`).style.display = 'none';
+        }
+
+        function saveInlineEdit(oldName, idx) {
+            const newName = document.getElementById(`edit-name-${idx}`).value.trim();
+            const newUrl = document.getElementById(`edit-url-${idx}`).value.trim();
+            const errEl = document.getElementById(`edit-err-${idx}`);
+
+            if (!newName || !newUrl) {
+                errEl.textContent = 'Nama dan URL tidak boleh kosong';
+                errEl.style.display = 'block';
+                return;
+            }
+            if (newName !== oldName && state.tabs.some(t => t.name === newName)) {
+                errEl.textContent = 'Nama tab sudah ada';
+                errEl.style.display = 'block';
+                return;
+            }
+
+            const tab = state.tabs.find(t => t.name === oldName);
+            tab.name = newName;
+            tab.url = newUrl;
+            if (state.currentTab === oldName) {
+                state.currentTab = newName;
+                localStorage.setItem('currentTab', newName);
+            }
+            saveTabs();
+            renderNavbar();
+            renderManageTabsList();
+        }
+
+        function confirmDelete(tabName) {
+            state.tabs = state.tabs.filter(t => t.name !== tabName);
+            if (state.currentTab === tabName) {
+                state.currentTab = state.tabs.length > 0 ? state.tabs[0].name : null;
+                localStorage.setItem('currentTab', state.currentTab || '');
+            }
+            saveTabs();
+            renderNavbar();
+            if (state.currentTab) selectTab(state.currentTab);
+            renderManageTabsList();
+        }
+
+
+
+        let draggedItem = null;
+
+        function handleDragStart(e) {
+            draggedItem = this;
+            this.classList.add('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            if (draggedItem !== this) {
+                const allItems = Array.from(document.querySelectorAll('.tabs-list-item'));
+                const draggedIndex = allItems.indexOf(draggedItem);
+                const targetIndex = allItems.indexOf(this);
+
+                const temp = state.tabs[draggedIndex];
+                state.tabs.splice(draggedIndex, 1);
+                state.tabs.splice(targetIndex, 0, temp);
+
+                saveTabs();
+                renderManageTabsList();
+            }
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+        }
+
+        // ============ NAVBAR TOGGLE ============
+        function setNavbarOpen(open) {
+            const toggle = document.getElementById('navbarToggle');
+            const panel = document.getElementById('navbarPanel');
+            const wrapper = document.getElementById('navbarTabsWrapper');
+            const overlay = document.getElementById('panelOverlay');
+
+            if (open) {
+                toggle.classList.add('active');
+                if (state.navbarMode === 'tabs') {
+                    wrapper.style.display = 'flex';
+                } else {
+                    panel.classList.add('active');
+                    overlay.style.display = 'block';
+                }
+            } else {
+                toggle.classList.remove('active');
+                wrapper.style.display = 'none';
+                panel.classList.remove('active');
+                overlay.style.display = 'none';
+            }
+        }
+
+        function toggleNavbar() {
+            const panel = document.getElementById('navbarPanel');
+            const wrapper = document.getElementById('navbarTabsWrapper');
+            const isOpen = state.navbarMode === 'tabs'
+                ? wrapper.style.display === 'flex'
+                : panel.classList.contains('active');
+            setNavbarOpen(!isOpen);
+        }
+
+        function closePanel() {
+            setNavbarOpen(false);
+        }
+    </script>
+
 </body>
 </html>
