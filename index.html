@@ -1078,15 +1078,14 @@
         async function saveTabs() {
             showSaveIndicator(true);
             try {
-                await fetch(state.appsScriptUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify({
-                        action: 'saveTabs',
-                        username: state.currentUser,
-                        tabs: state.tabs
-                    })
-                });
+                const tabsJson = JSON.stringify(state.tabs);
+                const url = state.appsScriptUrl
+                    + '?action=saveTabs'
+                    + '&username=' + encodeURIComponent(state.currentUser)
+                    + '&tabs=' + encodeURIComponent(tabsJson);
+                const res = await fetch(url, { redirect: 'follow' });
+                const data = await res.json();
+                if (!data.success) console.error('saveTabs gagal:', data);
             } catch(e) {
                 console.error('saveTabs error:', e);
             } finally {
@@ -1243,10 +1242,10 @@
 
 
 
-        let draggedItem = null;
+        let draggedIndex = null;
 
         function handleDragStart(e) {
-            draggedItem = this;
+            draggedIndex = parseInt(this.dataset.index);
             this.classList.add('dragging');
         }
 
@@ -1256,22 +1255,21 @@
 
         async function handleDrop(e) {
             e.preventDefault();
-            if (draggedItem !== this) {
-                const allItems = Array.from(document.querySelectorAll('.tabs-list-item'));
-                const draggedIndex = allItems.indexOf(draggedItem);
-                const targetIndex = allItems.indexOf(this);
-
+            const targetIndex = parseInt(this.dataset.index);
+            if (draggedIndex !== null && draggedIndex !== targetIndex) {
                 const temp = state.tabs[draggedIndex];
                 state.tabs.splice(draggedIndex, 1);
                 state.tabs.splice(targetIndex, 0, temp);
-
                 await saveTabs();
+                renderNavbar();
                 renderManageTabsList();
             }
+            draggedIndex = null;
         }
 
         function handleDragEnd(e) {
             this.classList.remove('dragging');
+            draggedIndex = null;
         }
 
         // ============ NAVBAR TOGGLE ============
