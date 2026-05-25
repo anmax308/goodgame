@@ -1106,12 +1106,31 @@
         async function saveTabs() {
             showSaveIndicator(true);
             try {
-                const url = state.appsScriptUrl
+                const tabsJson = JSON.stringify(state.tabs);
+                const getUrl = state.appsScriptUrl
                     + '?action=saveTabs'
                     + '&username=' + encodeURIComponent(state.currentUser)
                     + '&token='    + encodeURIComponent(state.sessionToken)
-                    + '&tabs='     + encodeURIComponent(JSON.stringify(state.tabs));
-                const res  = await fetch(url, { redirect: 'follow' });
+                    + '&tabs='     + encodeURIComponent(tabsJson);
+
+                let res;
+                if (getUrl.length <= 1800) {
+                    // URL pendek - pakai GET
+                    res = await fetch(getUrl, { redirect: 'follow' });
+                } else {
+                    // URL panjang - pakai POST JSON
+                    res = await fetch(state.appsScriptUrl, {
+                        method: 'POST',
+                        redirect: 'follow',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify({
+                            action: 'saveTabs',
+                            username: state.currentUser,
+                            token: state.sessionToken,
+                            tabs: state.tabs
+                        })
+                    });
+                }
                 const data = await res.json();
                 if (!data.success) console.error('saveTabs gagal:', data.message);
             } catch(e) {
