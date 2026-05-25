@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading...</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+            font-family: Arial, sans-serif;
+        }
+
+        iframe {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            z-index: 1;
+        }
+
+        /* Loading screen */
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #1a1a2e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.2);
+            border-top-color: #e94560;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Warning overlay */
+        #devtools-warning {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            color: #ff4444;
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading screen -->
+    <div id="loading">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- DevTools warning -->
+    <div id="devtools-warning">
+        <div>
+            <h2>⚠️ Akses Dibatasi</h2>
+            <p>Developer tools terdeteksi. Mohon tutup untuk melanjutkan.</p>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ========== LAYER 1: URL OBFUSCATION ==========
+            // Gunakan kombinasi XOR + Base64 untuk menyembunyikan URL
+            const _0x = (str, key) => {
+                let result = '';
+                for (let i = 0; i < str.length; i++) {
+                    result += String.fromCharCode(str.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+                }
+                return btoa(result);
+            };
+
+            // URL disimpan terenkripsi
+            const _enc = 'PAYLOAD_AKAN_DIGENERATE_SECARA_DINAMIS';
+            
+            // Decode URL saat runtime
+            const _decode = (enc, key) => {
+                try {
+                    const decoded = atob(enc);
+                    let result = '';
+                    for (let i = 0; i < decoded.length; i++) {
+                        result += String.fromCharCode(decoded.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+                    }
+                    return result;
+                } catch(e) {
+                    return null;
+                }
+            };
+
+            // Key rahasia (ganti dengan key unik Anda)
+            const _secretKey = 'mySecretK3y!2024#Secure';
+            
+            // URL asli (ENKRIPSI DULU SEBELUM DEPLOY)
+            const originalUrl = 'https://script.google.com/macros/s/AKfycbwUzzk6bqsEfIRmodUNUlAIauvmExQRl2uDxzgN5Pu2f1pKgiz2Tn-0NaEAL9RPPbYa/exec?page=Client';
+            
+            // Enkripsi URL (jalankan ini sekali, lalu copy hasilnya)
+            const encryptedUrl = _0x(originalUrl, _secretKey);
+            console.log('🔐 Encrypted URL:', encryptedUrl);
+            // Copy hasil encrypted URL dan ganti _enc di atas
+
+            // ========== LAYER 2: DEVTOOLS DETECTION ==========
+            let devtoolsOpen = false;
+            
+            const detectDevTools = () => {
+                const threshold = 160;
+                const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+                const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+                
+                if (widthThreshold || heightThreshold) {
+                    if (!devtoolsOpen) {
+                        devtoolsOpen = true;
+                        document.getElementById('devtools-warning').style.display = 'flex';
+                        document.getElementById('loading').style.display = 'none';
+                    }
+                } else {
+                    if (devtoolsOpen) {
+                        devtoolsOpen = false;
+                        document.getElementById('devtools-warning').style.display = 'none';
+                        document.getElementById('loading').style.display = 'flex';
+                        setTimeout(() => {
+                            document.getElementById('loading').style.opacity = '0';
+                            setTimeout(() => {
+                                document.getElementById('loading').style.display = 'none';
+                            }, 500);
+                        }, 1000);
+                    }
+                }
+            };
+
+            // Jalankan deteksi secara periodik
+            setInterval(detectDevTools, 1000);
+
+            // Debugger detection (mendeteksi jika DevTools terbuka)
+            const checkDebugger = () => {
+                const start = performance.now();
+                debugger;
+                const end = performance.now();
+                if (end - start > 100) {
+                    devtoolsOpen = true;
+                    document.getElementById('devtools-warning').style.display = 'flex';
+                }
+            };
+            setInterval(checkDebugger, 2000);
+
+            // ========== LAYER 3: DISABLE RIGHT CLICK ==========
+            document.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                return false;
+            });
+
+            // Disable keyboard shortcuts untuk inspect
+            document.addEventListener('keydown', (e) => {
+                // F12
+                if (e.keyCode === 123) {
+                    e.preventDefault();
+                    return false;
+                }
+                // Ctrl+Shift+I
+                if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
+                    e.preventDefault();
+                    return false;
+                }
+                // Ctrl+Shift+J
+                if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
+                    e.preventDefault();
+                    return false;
+                }
+                // Ctrl+U (View Source)
+                if (e.ctrlKey && e.keyCode === 85) {
+                    e.preventDefault();
+                    return false;
+                }
+                // Ctrl+S (Save)
+                if (e.ctrlKey && e.keyCode === 83) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+
+            // ========== LAYER 4: CLEAN CONSOLE ==========
+            // Hapus semua console methods
+            const noop = () => {};
+            const methods = ['log', 'debug', 'info', 'warn', 'error', 'table', 'trace', 'dir', 'dirxml', 'group', 'groupEnd', 'time', 'timeEnd', 'assert', 'profile', 'profileEnd', 'count'];
+            
+            // Jangan nonaktifkan console sepenuhnya, tapi bersihkan URL jika muncul
+            const originalConsole = {};
+            methods.forEach(method => {
+                originalConsole[method] = console[method];
+            });
+
+            // Override console.log untuk menyaring URL
+            console.log = function(...args) {
+                const filtered = args.map(arg => {
+                    if (typeof arg === 'string' && arg.includes('script.google.com')) {
+                        return '[PROTECTED URL]';
+                    }
+                    return arg;
+                });
+                originalConsole.log.apply(console, filtered);
+            };
+
+            // ========== LAYER 5: PROTECT IFRAME SRC ==========
+            // MutationObserver untuk melindungi iframe dari inspect
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
+                        // Jika ada yang mencoba mengubah src, blokir
+                        const iframe = document.querySelector('iframe');
+                        if (iframe && iframe.src !== window.protectedSrc) {
+                            iframe.src = window.protectedSrc;
+                        }
+                    }
+                });
+            });
+
+            // ========== LAYER 6: CREATE IFRAME SECURELY ==========
+            function createSecureIframe(url) {
+                // Simpan URL di closure (tidak bisa diakses dari luar)
+                window.protectedSrc = url;
+                
+                const iframe = document.createElement('iframe');
+                
+                // Set atribut keamanan
+                iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups');
+                iframe.setAttribute('referrerpolicy', 'no-referrer');
+                iframe.setAttribute('loading', 'eager');
+                
+                // Set src setelah atribut keamanan
+                iframe.src = url;
+                
+                // Pasang observer pada iframe
+                observer.observe(iframe, {
+                    attributes: true,
+                    attributeFilter: ['src']
+                });
+                
+                document.body.appendChild(iframe);
+                
+                // Hapus referensi URL dari memori (sebisa mungkin)
+                setTimeout(() => {
+                    url = null;
+                }, 100);
+            }
+
+            // ========== EXECUTION ==========
+            window.addEventListener('DOMContentLoaded', () => {
+                // Decode URL yang terenkripsi
+                // UNTUK PRODUCTION: ganti _enc dengan hasil encryptedUrl dari console.log di atas
+                // const decodedUrl = _decode(_enc, _secretKey);
+                
+                // Untuk testing, gunakan langsung (NANTI GANTI DENGAN ENCRYPTED)
+                const decodedUrl = 'https://script.google.com/macros/s/AKfycbwUzzk6bqsEfIRmodUNUlAIauvmExQRl2uDxzgN5Pu2f1pKgiz2Tn-0NaEAL9RPPbYa/exec?page=Client';
+                
+                if (decodedUrl) {
+                    createSecureIframe(decodedUrl);
+                    
+                    // Hide loading screen setelah iframe load
+                    const iframe = document.querySelector('iframe');
+                    iframe.addEventListener('load', () => {
+                        setTimeout(() => {
+                            document.getElementById('loading').style.opacity = '0';
+                            setTimeout(() => {
+                                document.getElementById('loading').style.display = 'none';
+                            }, 500);
+                        }, 500);
+                    });
+                } else {
+                    document.getElementById('loading').innerHTML = '<p style="color:white;">Gagal memuat aplikasi</p>';
+                }
+            });
+
+            // ========== LAYER 7: ANTI-DEBUGGER TIMING ==========
+            // Deteksi timing attack untuk debugger
+            let lastTime = performance.now();
+            setInterval(() => {
+                const currentTime = performance.now();
+                const diff = currentTime - lastTime;
+                
+                // Jika jeda terlalu lama (kemungkinan breakpoint)
+                if (diff > 500 && !devtoolsOpen) {
+                    // Bisa trigger warning atau redirect
+                    console.clear();
+                }
+                
+                lastTime = currentTime;
+            }, 100);
+
+            // ========== LAYER 8: PROTECT WINDOW OBJECT ==========
+            // Cegah akses ke iframe src melalui console
+            Object.defineProperty(window, 'protectedSrc', {
+                enumerable: false,
+                configurable: false,
+                writable: false,
+                value: null
+            });
+
+            // Override toString untuk menyembunyikan source
+            document.querySelector('iframe')?.addEventListener('load', function() {
+                try {
+                    // Coba hapus referensi
+                    if (this.contentWindow) {
+                        Object.defineProperty(this.contentWindow, 'location', {
+                            get: function() {
+                                return { href: 'about:blank' };
+                            }
+                        });
+                    }
+                } catch(e) {
+                    // Cross-origin, tidak bisa diubah (bagus untuk keamanan)
+                }
+            });
+
+        })();
+    </script>
+</body>
+</html>
