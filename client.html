@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loading...</title>
+    <meta name="robots" content="noindex, nofollow">
+    <title>Client Portal</title>
+    
+    <!-- Favicon (opsional, ganti dengan icon kamu) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔒</text></svg>">
+    
     <style>
         * {
             margin: 0;
@@ -15,11 +20,64 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background: #000;
-            font-family: Arial, sans-serif;
+            background: #0a0a0a;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
         }
 
-        iframe {
+        /* ========== LOADING SCREEN ========== */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+
+        #loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loader-ring {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #6c63ff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        .loader-text {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* ========== IFRAME CONTAINER ========== */
+        #app-frame {
             position: fixed;
             top: 0;
             left: 0;
@@ -27,320 +85,573 @@
             height: 100%;
             border: none;
             z-index: 1;
+            background: #fff;
         }
 
-        /* Loading screen */
-        #loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #1a1a2e;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            transition: opacity 0.5s ease;
-        }
-
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid rgba(255, 255, 255, 0.2);
-            border-top-color: #e94560;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Warning overlay */
-        #devtools-warning {
+        /* ========== WARNING OVERLAY ========== */
+        #security-warning {
             display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            color: #ff4444;
+            background: rgba(0, 0, 0, 0.95);
             z-index: 10000;
             justify-content: center;
             align-items: center;
-            font-size: 1.2rem;
+            flex-direction: column;
+        }
+
+        #security-warning.active {
+            display: flex;
+        }
+
+        .warning-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        .warning-title {
+            color: #ff4444;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .warning-text {
+            color: #ccc;
+            font-size: 14px;
             text-align: center;
-            padding: 20px;
+            max-width: 400px;
+            line-height: 1.6;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* ========== WATERMARK (OPSIONAL) ========== */
+        #watermark {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            color: rgba(255, 255, 255, 0.05);
+            font-size: 10px;
+            z-index: 2;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
-    <!-- Loading screen -->
-    <div id="loading">
-        <div class="spinner"></div>
+    
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loader-ring"></div>
+        <div class="loader-text">Memuat Portal...</div>
     </div>
 
-    <!-- DevTools warning -->
-    <div id="devtools-warning">
-        <div>
-            <h2>⚠️ Akses Dibatasi</h2>
-            <p>Developer tools terdeteksi. Mohon tutup untuk melanjutkan.</p>
+    <!-- Security Warning -->
+    <div id="security-warning">
+        <div class="warning-icon">🚫</div>
+        <div class="warning-title">Akses Dibatasi</div>
+        <div class="warning-text">
+            Alat pengembang (Developer Tools) terdeteksi.<br>
+            Mohon tutup untuk melanjutkan akses.
         </div>
     </div>
 
+    <!-- Watermark -->
+    <div id="watermark">SECURED</div>
+
     <script>
+        /**
+         * ============================================
+         * SECURE IFRAME LOADER v2.0
+         * Protected Client Portal
+         * ============================================
+         */
         (function() {
-            // ========== LAYER 1: URL OBFUSCATION ==========
-            // Gunakan kombinasi XOR + Base64 untuk menyembunyikan URL
-            const _0x = (str, key) => {
-                let result = '';
-                for (let i = 0; i < str.length; i++) {
-                    result += String.fromCharCode(str.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-                }
-                return btoa(result);
-            };
+            'use strict';
 
-            // URL disimpan terenkripsi
-            const _enc = 'PAYLOAD_AKAN_DIGENERATE_SECARA_DINAMIS';
-            
-            // Decode URL saat runtime
-            const _decode = (enc, key) => {
-                try {
-                    const decoded = atob(enc);
-                    let result = '';
-                    for (let i = 0; i < decoded.length; i++) {
-                        result += String.fromCharCode(decoded.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-                    }
-                    return result;
-                } catch(e) {
-                    return null;
-                }
-            };
-
-            // Key rahasia (ganti dengan key unik Anda)
-            const _secretKey = 'mySecretK3y!2024#Secure';
-            
-            // URL asli (ENKRIPSI DULU SEBELUM DEPLOY)
-            const originalUrl = 'https://script.google.com/macros/s/AKfycbwUzzk6bqsEfIRmodUNUlAIauvmExQRl2uDxzgN5Pu2f1pKgiz2Tn-0NaEAL9RPPbYa/exec?page=Client';
-            
-            // Enkripsi URL (jalankan ini sekali, lalu copy hasilnya)
-            const encryptedUrl = _0x(originalUrl, _secretKey);
-            console.log('🔐 Encrypted URL:', encryptedUrl);
-            // Copy hasil encrypted URL dan ganti _enc di atas
-
-            // ========== LAYER 2: DEVTOOLS DETECTION ==========
-            let devtoolsOpen = false;
-            
-            const detectDevTools = () => {
-                const threshold = 160;
-                const widthThreshold = window.outerWidth - window.innerWidth > threshold;
-                const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+            // ========== CONFIGURATION ==========
+            const CONFIG = {
+                // GANTI dengan encrypted URL hasil generate
+                ENCRYPTED_URL: 'KxhFQx1Ofx8BF0YFUScdBBodVE9XHlFbLkNcUg0GP0NdBxstajVKABcFZllIWwRWMh90VScmPV8WIXo5TRJ6AgAEXmZKYWBYcRl1SxQTHgUiAQYKECN4BBwIAXdcHQJ6Iilwf1cmAGAQLVVDRCtWAEoCUkRXDXFYKglfRw==',
                 
-                if (widthThreshold || heightThreshold) {
-                    if (!devtoolsOpen) {
-                        devtoolsOpen = true;
-                        document.getElementById('devtools-warning').style.display = 'flex';
-                        document.getElementById('loading').style.display = 'none';
+                // Secret key untuk decrypt (jangan diganti setelah enkripsi)
+                SECRET_KEY: 'Cl13ntP0rt4l!S3cur3#2024',
+                
+                // Timeout loading screen (ms)
+                LOADING_TIMEOUT: 8000,
+                
+                // Interval pengecekan DevTools (ms)
+                DEVTOOLS_CHECK_INTERVAL: 1000,
+            };
+
+            // ========== URL ENCRYPTION/DECRYPTION ==========
+            const Crypto = {
+                /**
+                 * Encrypt URL dengan XOR + Base64
+                 * Jalankan ini sekali untuk mendapatkan encrypted URL
+                 */
+                encrypt(text, key) {
+                    let result = '';
+                    for (let i = 0; i < text.length; i++) {
+                        result += String.fromCharCode(
+                            text.charCodeAt(i) ^ key.charCodeAt(i % key.length)
+                        );
                     }
-                } else {
-                    if (devtoolsOpen) {
-                        devtoolsOpen = false;
-                        document.getElementById('devtools-warning').style.display = 'none';
-                        document.getElementById('loading').style.display = 'flex';
+                    return btoa(result);
+                },
+
+                /**
+                 * Decrypt URL
+                 */
+                decrypt(encrypted, key) {
+                    try {
+                        const decoded = atob(encrypted);
+                        let result = '';
+                        for (let i = 0; i < decoded.length; i++) {
+                            result += String.fromCharCode(
+                                decoded.charCodeAt(i) ^ key.charCodeAt(i % key.length)
+                            );
+                        }
+                        return result;
+                    } catch (e) {
+                        console.error('Decryption failed');
+                        return null;
+                    }
+                },
+
+                /**
+                 * Generate encrypted URL (untuk development)
+                 */
+                generateEncrypted() {
+                    const originalUrl = 'https://script.google.com/macros/s/AKfycbwUzzk6bqsEfIRmodUNUlAIauvmExQRl2uDxzgN5Pu2f1pKgiz2Tn-0NaEAL9RPPbYa/exec?page=Client';
+                    const encrypted = this.encrypt(originalUrl, CONFIG.SECRET_KEY);
+                    console.log('%c🔐 ENCRYPTED URL (Copy ini):', 'color: #6c63ff; font-weight: bold;');
+                    console.log('%c' + encrypted, 'background: #333; color: #0f0; padding: 10px;');
+                    console.log('%c📋 Paste ke CONFIG.ENCRYPTED_URL', 'color: #ff9800;');
+                    return encrypted;
+                }
+            };
+
+            // ========== DEVTOOLS DETECTION ==========
+            const DevToolsDetector = {
+                isOpen: false,
+                warningElement: null,
+                loadingElement: null,
+
+                init() {
+                    this.warningElement = document.getElementById('security-warning');
+                    this.loadingElement = document.getElementById('loading-screen');
+                    this.startDetection();
+                },
+
+                startDetection() {
+                    // Method 1: Window size difference
+                    setInterval(() => {
+                        const widthDiff = window.outerWidth - window.innerWidth;
+                        const heightDiff = window.outerHeight - window.innerHeight;
+                        
+                        if (widthDiff > 160 || heightDiff > 160) {
+                            this.triggerWarning();
+                        } else {
+                            this.clearWarning();
+                        }
+                    }, CONFIG.DEVTOOLS_CHECK_INTERVAL);
+
+                    // Method 2: Debugger statement timing
+                    setInterval(() => {
+                        const start = performance.now();
+                        debugger;
+                        const end = performance.now();
+                        if (end - start > 100) {
+                            this.triggerWarning();
+                        }
+                    }, 2000);
+
+                    // Method 3: Console.log timing (Firefox)
+                    if (typeof console.log.toString === 'function') {
+                        let lastTime = Date.now();
+                        setInterval(() => {
+                            const now = Date.now();
+                            if (now - lastTime > 200) {
+                                this.triggerWarning();
+                            }
+                            lastTime = now;
+                        }, 100);
+                    }
+                },
+
+                triggerWarning() {
+                    if (!this.isOpen) {
+                        this.isOpen = true;
+                        this.warningElement.classList.add('active');
+                        this.loadingElement.classList.add('hidden');
+                    }
+                },
+
+                clearWarning() {
+                    if (this.isOpen) {
+                        this.isOpen = false;
+                        this.warningElement.classList.remove('active');
+                        this.loadingElement.classList.remove('hidden');
+                        
+                        // Delay sebelum menampilkan kembali
                         setTimeout(() => {
-                            document.getElementById('loading').style.opacity = '0';
-                            setTimeout(() => {
-                                document.getElementById('loading').style.display = 'none';
-                            }, 500);
+                            if (!this.isOpen) {
+                                this.loadingElement.classList.remove('hidden');
+                            }
                         }, 1000);
                     }
                 }
             };
 
-            // Jalankan deteksi secara periodik
-            setInterval(detectDevTools, 1000);
+            // ========== EVENT BLOCKERS ==========
+            const EventBlocker = {
+                init() {
+                    this.blockContextMenu();
+                    this.blockShortcuts();
+                    this.blockDragDrop();
+                    this.blockTextSelection();
+                },
 
-            // Debugger detection (mendeteksi jika DevTools terbuka)
-            const checkDebugger = () => {
-                const start = performance.now();
-                debugger;
-                const end = performance.now();
-                if (end - start > 100) {
-                    devtoolsOpen = true;
-                    document.getElementById('devtools-warning').style.display = 'flex';
-                }
-            };
-            setInterval(checkDebugger, 2000);
+                blockContextMenu() {
+                    document.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    }, true);
+                },
 
-            // ========== LAYER 3: DISABLE RIGHT CLICK ==========
-            document.addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-                return false;
-            });
+                blockShortcuts() {
+                    document.addEventListener('keydown', (e) => {
+                        const blockedKeys = {
+                            123: 'F12',
+                            73: 'Ctrl+Shift+I',  // I
+                            74: 'Ctrl+Shift+J',  // J
+                            67: 'Ctrl+Shift+C',  // C
+                            85: 'Ctrl+U',        // U
+                            83: 'Ctrl+S',        // S
+                        };
 
-            // Disable keyboard shortcuts untuk inspect
-            document.addEventListener('keydown', (e) => {
-                // F12
-                if (e.keyCode === 123) {
-                    e.preventDefault();
-                    return false;
-                }
-                // Ctrl+Shift+I
-                if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
-                    e.preventDefault();
-                    return false;
-                }
-                // Ctrl+Shift+J
-                if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
-                    e.preventDefault();
-                    return false;
-                }
-                // Ctrl+U (View Source)
-                if (e.ctrlKey && e.keyCode === 85) {
-                    e.preventDefault();
-                    return false;
-                }
-                // Ctrl+S (Save)
-                if (e.ctrlKey && e.keyCode === 83) {
-                    e.preventDefault();
-                    return false;
-                }
-            });
-
-            // ========== LAYER 4: CLEAN CONSOLE ==========
-            // Hapus semua console methods
-            const noop = () => {};
-            const methods = ['log', 'debug', 'info', 'warn', 'error', 'table', 'trace', 'dir', 'dirxml', 'group', 'groupEnd', 'time', 'timeEnd', 'assert', 'profile', 'profileEnd', 'count'];
-            
-            // Jangan nonaktifkan console sepenuhnya, tapi bersihkan URL jika muncul
-            const originalConsole = {};
-            methods.forEach(method => {
-                originalConsole[method] = console[method];
-            });
-
-            // Override console.log untuk menyaring URL
-            console.log = function(...args) {
-                const filtered = args.map(arg => {
-                    if (typeof arg === 'string' && arg.includes('script.google.com')) {
-                        return '[PROTECTED URL]';
-                    }
-                    return arg;
-                });
-                originalConsole.log.apply(console, filtered);
-            };
-
-            // ========== LAYER 5: PROTECT IFRAME SRC ==========
-            // MutationObserver untuk melindungi iframe dari inspect
-            const observer = new MutationObserver((mutations) => {
-                mutations.forEach((mutation) => {
-                    if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
-                        // Jika ada yang mencoba mengubah src, blokir
-                        const iframe = document.querySelector('iframe');
-                        if (iframe && iframe.src !== window.protectedSrc) {
-                            iframe.src = window.protectedSrc;
+                        // F12
+                        if (e.keyCode === 123) {
+                            e.preventDefault();
+                            return false;
                         }
-                    }
-                });
-            });
 
-            // ========== LAYER 6: CREATE IFRAME SECURELY ==========
-            function createSecureIframe(url) {
-                // Simpan URL di closure (tidak bisa diakses dari luar)
-                window.protectedSrc = url;
-                
-                const iframe = document.createElement('iframe');
-                
-                // Set atribut keamanan
-                iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups');
-                iframe.setAttribute('referrerpolicy', 'no-referrer');
-                iframe.setAttribute('loading', 'eager');
-                
-                // Set src setelah atribut keamanan
-                iframe.src = url;
-                
-                // Pasang observer pada iframe
-                observer.observe(iframe, {
-                    attributes: true,
-                    attributeFilter: ['src']
-                });
-                
-                document.body.appendChild(iframe);
-                
-                // Hapus referensi URL dari memori (sebisa mungkin)
-                setTimeout(() => {
-                    url = null;
-                }, 100);
-            }
+                        // Ctrl+Shift combinations
+                        if (e.ctrlKey && e.shiftKey && blockedKeys[e.keyCode]) {
+                            e.preventDefault();
+                            return false;
+                        }
 
-            // ========== EXECUTION ==========
-            window.addEventListener('DOMContentLoaded', () => {
-                // Decode URL yang terenkripsi
-                // UNTUK PRODUCTION: ganti _enc dengan hasil encryptedUrl dari console.log di atas
-                // const decodedUrl = _decode(_enc, _secretKey);
-                
-                // Untuk testing, gunakan langsung (NANTI GANTI DENGAN ENCRYPTED)
-                const decodedUrl = 'https://script.google.com/macros/s/AKfycbwUzzk6bqsEfIRmodUNUlAIauvmExQRl2uDxzgN5Pu2f1pKgiz2Tn-0NaEAL9RPPbYa/exec?page=Client';
-                
-                if (decodedUrl) {
-                    createSecureIframe(decodedUrl);
-                    
-                    // Hide loading screen setelah iframe load
-                    const iframe = document.querySelector('iframe');
-                    iframe.addEventListener('load', () => {
-                        setTimeout(() => {
-                            document.getElementById('loading').style.opacity = '0';
-                            setTimeout(() => {
-                                document.getElementById('loading').style.display = 'none';
-                            }, 500);
-                        }, 500);
+                        // Ctrl+U (View Source)
+                        if (e.ctrlKey && e.keyCode === 85) {
+                            e.preventDefault();
+                            return false;
+                        }
+
+                        // Ctrl+S (Save)
+                        if (e.ctrlKey && e.keyCode === 83) {
+                            e.preventDefault();
+                            return false;
+                        }
+                    }, true);
+                },
+
+                blockDragDrop() {
+                    document.addEventListener('dragstart', (e) => e.preventDefault());
+                    document.addEventListener('drop', (e) => e.preventDefault());
+                },
+
+                blockTextSelection() {
+                    document.addEventListener('selectstart', (e) => {
+                        // Izinkan seleksi di dalam iframe saja
+                        if (e.target.tagName !== 'IFRAME') {
+                            e.preventDefault();
+                        }
                     });
-                } else {
-                    document.getElementById('loading').innerHTML = '<p style="color:white;">Gagal memuat aplikasi</p>';
                 }
-            });
+            };
 
-            // ========== LAYER 7: ANTI-DEBUGGER TIMING ==========
-            // Deteksi timing attack untuk debugger
-            let lastTime = performance.now();
-            setInterval(() => {
-                const currentTime = performance.now();
-                const diff = currentTime - lastTime;
-                
-                // Jika jeda terlalu lama (kemungkinan breakpoint)
-                if (diff > 500 && !devtoolsOpen) {
-                    // Bisa trigger warning atau redirect
-                    console.clear();
+            // ========== CONSOLE PROTECTION ==========
+            const ConsoleProtector = {
+                init() {
+                    this.overrideConsoleMethods();
+                    this.clearConsolePeriodically();
+                    this.warnOnConsole();
+                },
+
+                overrideConsoleMethods() {
+                    const protectedUrls = ['script.google.com', 'macros'];
+                    
+                    // Simpan referensi asli
+                    const originalLog = console.log;
+                    const originalWarn = console.warn;
+                    const originalError = console.error;
+
+                    // Override log
+                    console.log = function(...args) {
+                        const filtered = args.map(arg => {
+                            if (typeof arg === 'string') {
+                                if (protectedUrls.some(url => arg.includes(url))) {
+                                    return '[PROTECTED]';
+                                }
+                            }
+                            return arg;
+                        });
+                        originalLog.apply(console, filtered);
+                    };
+
+                    // Override warn  
+                    console.warn = function(...args) {
+                        const filtered = args.map(arg => {
+                            if (typeof arg === 'string') {
+                                if (protectedUrls.some(url => arg.includes(url))) {
+                                    return '[PROTECTED]';
+                                }
+                            }
+                            return arg;
+                        });
+                        originalWarn.apply(console, filtered);
+                    };
+
+                    // Override error
+                    console.error = function(...args) {
+                        const filtered = args.map(arg => {
+                            if (typeof arg === 'string') {
+                                if (protectedUrls.some(url => arg.includes(url))) {
+                                    return '[ERROR PROTECTED]';
+                                }
+                            }
+                            return arg;
+                        });
+                        originalError.apply(console, filtered);
+                    };
+                },
+
+                clearConsolePeriodically() {
+                    setInterval(() => {
+                        if (console.clear && typeof console.clear === 'function') {
+                            console.clear();
+                        }
+                    }, 3000);
+                },
+
+                warnOnConsole() {
+                    console.log('%c⚠️ STOP!', 'color: red; font-size: 30px; font-weight: bold;');
+                    console.log('%cIni adalah area terproteksi.', 'color: orange; font-size: 16px;');
+                    console.log('%cSocial engineering? Silakan coba lagi 😉', 'color: #888;');
                 }
-                
-                lastTime = currentTime;
-            }, 100);
+            };
 
-            // ========== LAYER 8: PROTECT WINDOW OBJECT ==========
-            // Cegah akses ke iframe src melalui console
-            Object.defineProperty(window, 'protectedSrc', {
-                enumerable: false,
-                configurable: false,
-                writable: false,
-                value: null
-            });
+            // ========== IFRAME MANAGER ==========
+            const IframeManager = {
+                iframe: null,
+                targetUrl: null,
 
-            // Override toString untuk menyembunyikan source
-            document.querySelector('iframe')?.addEventListener('load', function() {
-                try {
-                    // Coba hapus referensi
-                    if (this.contentWindow) {
-                        Object.defineProperty(this.contentWindow, 'location', {
-                            get: function() {
-                                return { href: 'about:blank' };
+                init(url) {
+                    this.targetUrl = url;
+                    this.createIframe();
+                    this.setupObserver();
+                    this.handleLoad();
+                },
+
+                createIframe() {
+                    this.iframe = document.createElement('iframe');
+                    
+                    // Atribut keamanan
+                    this.iframe.id = 'app-frame';
+                    this.iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation');
+                    this.iframe.setAttribute('referrerpolicy', 'no-referrer');
+                    this.iframe.setAttribute('loading', 'eager');
+                    this.iframe.setAttribute('title', 'Client Portal');
+                    
+                    // Set src (ini yang akan diproteksi)
+                    this.iframe.src = this.targetUrl;
+                    
+                    // Tambahkan ke DOM
+                    document.body.appendChild(this.iframe);
+                },
+
+                setupObserver() {
+                    // Proteksi perubahan src via MutationObserver
+                    const observer = new MutationObserver((mutations) => {
+                        mutations.forEach((mutation) => {
+                            if (mutation.type === 'attributes' && 
+                                mutation.attributeName === 'src' &&
+                                this.iframe.src !== this.targetUrl) {
+                                // Kembalikan ke URL asli
+                                this.iframe.src = this.targetUrl;
                             }
                         });
+                    });
+
+                    observer.observe(this.iframe, {
+                        attributes: true,
+                        attributeFilter: ['src']
+                    });
+
+                    // Proteksi akses via Object.defineProperty
+                    try {
+                        Object.defineProperty(this.iframe, 'src', {
+                            get: () => this.targetUrl,
+                            set: (value) => {
+                                if (value !== this.targetUrl) {
+                                    console.warn('Unauthorized src modification blocked');
+                                    return;
+                                }
+                                this.targetUrl = value;
+                            },
+                            configurable: false
+                        });
+                    } catch (e) {
+                        // Fallback jika defineProperty gagal
+                        console.debug('Object.defineProperty not available');
                     }
-                } catch(e) {
-                    // Cross-origin, tidak bisa diubah (bagus untuk keamanan)
+                },
+
+                handleLoad() {
+                    this.iframe.addEventListener('load', () => {
+                        // Sembunyikan loading screen
+                        setTimeout(() => {
+                            const loadingScreen = document.getElementById('loading-screen');
+                            if (loadingScreen) {
+                                loadingScreen.classList.add('hidden');
+                            }
+                        }, 500);
+
+                        // Coba proteksi contentWindow
+                        this.protectContentWindow();
+                    });
+                },
+
+                protectContentWindow() {
+                    try {
+                        const contentWindow = this.iframe.contentWindow;
+                        if (contentWindow) {
+                            // Override location
+                            Object.defineProperty(contentWindow, 'location', {
+                                get: () => ({ href: 'about:blank', hostname: '' }),
+                                configurable: false
+                            });
+                        }
+                    } catch (e) {
+                        // Cross-origin - tidak bisa diakses (ini bagus)
+                        console.debug('Cross-origin protection active');
+                    }
+                },
+
+                // Cleanup URL dari memori
+                cleanupUrl() {
+                    setTimeout(() => {
+                        this.targetUrl = null;
+                        if (CONFIG.ENCRYPTED_URL) {
+                            // Hapus dari config
+                            delete CONFIG.ENCRYPTED_URL;
+                        }
+                    }, 2000);
                 }
+            };
+
+            // ========== MAIN EXECUTION ==========
+            function main() {
+                // Inisialisasi proteksi
+                EventBlocker.init();
+                ConsoleProtector.init();
+                DevToolsDetector.init();
+
+                // Dapatkan URL
+                let targetUrl;
+                
+                // Mode 1: Gunakan encrypted URL (PRODUCTION)
+                if (CONFIG.ENCRYPTED_URL && CONFIG.ENCRYPTED_URL !== 'PASTE_ENCRYPTED_URL_HERE') {
+                    targetUrl = Crypto.decrypt(CONFIG.ENCRYPTED_URL, CONFIG.SECRET_KEY);
+                    
+                    if (!targetUrl) {
+                        showError('Gagal mendekripsi URL. Hubungi administrator.');
+                        return;
+                    }
+                } 
+                // Mode 2: Development mode (auto-encrypt)
+                else {
+                    console.warn('⚠️ DEVELOPMENT MODE - Generate encrypted URL untuk production');
+                    const encrypted = Crypto.generateEncrypted();
+                    
+                    // Gunakan URL langsung untuk development
+                    targetUrl = 'https://script.google.com/macros/s/AKfycbwUzzk6bqsEfIRmodUNUlAIauvmExQRl2uDxzgN5Pu2f1pKgiz2Tn-0NaEAL9RPPbYa/exec?page=Client';
+                    
+                    // Tampilkan instruksi
+                    console.log('%c📝 LANGKAH DEPLOYMENT:', 'color: #ff9800; font-size: 16px;');
+                    console.log('1. Copy encrypted URL di atas');
+                    console.log('2. Buka file client.html');
+                    console.log('3. Cari CONFIG.ENCRYPTED_URL');
+                    console.log('4. Paste encrypted URL ke dalam tanda kutip');
+                    console.log('5. Simpan dan deploy ke GitHub Pages');
+                }
+
+                // Buat iframe dengan URL
+                if (targetUrl) {
+                    IframeManager.init(targetUrl);
+                    
+                    // Cleanup URL dari memori setelah beberapa detik
+                    IframeManager.cleanupUrl();
+                    
+                    // Hapus referensi URL dari scope ini
+                    targetUrl = null;
+                } else {
+                    showError('URL tidak valid. Tidak dapat memuat aplikasi.');
+                }
+            }
+
+            // ========== ERROR HANDLER ==========
+            function showError(message) {
+                const loadingScreen = document.getElementById('loading-screen');
+                if (loadingScreen) {
+                    loadingScreen.innerHTML = `
+                        <div style="text-align: center; color: white;">
+                            <div style="font-size: 50px; margin-bottom: 20px;">⚠️</div>
+                            <div style="font-size: 18px; color: #ff4444;">${message}</div>
+                            <div style="font-size: 12px; color: #888; margin-top: 20px;">
+                                Silakan hubungi administrator
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            // ========== STARTUP ==========
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', main);
+            } else {
+                main();
+            }
+
+            // ========== ADDITIONAL PROTECTION ==========
+            // Deteksi jika script dijalankan di luar browser normal
+            if (navigator.webdriver) {
+                document.body.innerHTML = '<h1 style="color:red;text-align:center;margin-top:100px;">⛔ Automated access detected</h1>';
+                throw new Error('Access denied');
+            }
+
+            // Proteksi window.name
+            Object.defineProperty(window, 'name', {
+                get: () => '',
+                set: () => {},
+                configurable: false
             });
+
+            // Cegah framing (opsional)
+            if (window.top !== window.self) {
+                window.top.location = window.self.location;
+            }
 
         })();
     </script>
