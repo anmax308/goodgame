@@ -240,74 +240,87 @@
                 }
             };
 
-            // ========== DEVTOOLS DETECTION ==========
+            // ========== DEVTOOLS DETECTION (FIXED) ==========
             const DevToolsDetector = {
                 isOpen: false,
                 warningElement: null,
                 loadingElement: null,
-
+                lastDevtoolsState: false,
+                stableCheckCount: 0,
+                requiredStableChecks: 3, // Harus 3x berturut-turut terdeteksi
+            
                 init() {
                     this.warningElement = document.getElementById('security-warning');
                     this.loadingElement = document.getElementById('loading-screen');
                     this.startDetection();
                 },
-
+            
                 startDetection() {
-                    // Method 1: Window size difference
+                    // Method 1: Window size difference (DIPERBAIKI)
+                    let lastWidthDiff = 0;
+                    let lastHeightDiff = 0;
+                    
                     setInterval(() => {
                         const widthDiff = window.outerWidth - window.innerWidth;
                         const heightDiff = window.outerHeight - window.innerHeight;
                         
-                        if (widthDiff > 160 || heightDiff > 160) {
-                            this.triggerWarning();
+                        // Threshold lebih tinggi + harus konsisten
+                        const isSuspicious = (widthDiff > 200 || heightDiff > 200) && 
+                                            (Math.abs(widthDiff - lastWidthDiff) < 50) &&
+                                            (Math.abs(heightDiff - lastHeightDiff) < 50);
+                        
+                        lastWidthDiff = widthDiff;
+                        lastHeightDiff = heightDiff;
+                        
+                        if (isSuspicious) {
+                            this.stableCheckCount++;
+                            if (this.stableCheckCount >= this.requiredStableChecks) {
+                                this.triggerWarning();
+                            }
                         } else {
-                            this.clearWarning();
+                            this.stableCheckCount = Math.max(0, this.stableCheckCount - 1);
+                            if (this.stableCheckCount === 0) {
+                                this.clearWarning();
+                            }
                         }
                     }, CONFIG.DEVTOOLS_CHECK_INTERVAL);
-
-                    // Method 2: Debugger statement timing
+            
+                    // Method 2: Debugger timing (DIPERBAIKI)
+                    let debuggerTriggerCount = 0;
                     setInterval(() => {
                         const start = performance.now();
                         debugger;
                         const end = performance.now();
+                        
                         if (end - start > 100) {
-                            this.triggerWarning();
-                        }
-                    }, 2000);
-
-                    // Method 3: Console.log timing (Firefox)
-                    if (typeof console.log.toString === 'function') {
-                        let lastTime = Date.now();
-                        setInterval(() => {
-                            const now = Date.now();
-                            if (now - lastTime > 200) {
+                            debuggerTriggerCount++;
+                            if (debuggerTriggerCount >= 3) {
                                 this.triggerWarning();
                             }
-                            lastTime = now;
-                        }, 100);
-                    }
+                        } else {
+                            debuggerTriggerCount = Math.max(0, debuggerTriggerCount - 1);
+                            if (debuggerTriggerCount === 0 && this.stableCheckCount === 0) {
+                                this.clearWarning();
+                            }
+                        }
+                    }, 2000);
                 },
-
+            
                 triggerWarning() {
                     if (!this.isOpen) {
                         this.isOpen = true;
                         this.warningElement.classList.add('active');
-                        this.loadingElement.classList.add('hidden');
+                        // JANGAN sembunyikan loading screen saat warning
+                        // this.loadingElement.classList.add('hidden'); // <-- HAPUS INI
                     }
                 },
-
+            
                 clearWarning() {
                     if (this.isOpen) {
                         this.isOpen = false;
                         this.warningElement.classList.remove('active');
-                        this.loadingElement.classList.remove('hidden');
-                        
-                        // Delay sebelum menampilkan kembali
-                        setTimeout(() => {
-                            if (!this.isOpen) {
-                                this.loadingElement.classList.remove('hidden');
-                            }
-                        }, 1000);
+                        // JANGAN tampilkan loading screen lagi
+                        // this.loadingElement.classList.remove('hidden'); // <-- HAPUS INI
                     }
                 }
             };
