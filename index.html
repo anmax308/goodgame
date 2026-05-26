@@ -789,15 +789,50 @@
             setupEventListeners();
         });
 
-        function initializeApp() {
+        async function initializeApp() {
             const savedUser  = localStorage.getItem('currentUser');
             const savedToken = localStorage.getItem('sessionToken');
             if (savedUser && savedToken) {
                 state.currentUser  = JSON.parse(savedUser);
                 state.sessionToken = savedToken;
-                showApp();
+                // Verifikasi token ke server sebelum lanjut
+                const valid = await verifySessionOnLoad();
+                if (valid) {
+                    showApp();
+                } else {
+                    forceLogout('Session berakhir, silakan login ulang');
+                }
             } else {
                 showLogin();
+            }
+        }
+
+        async function verifySessionOnLoad() {
+            try {
+                const url = state.appsScriptUrl
+                    + '?action=verify'
+                    + '&username=' + encodeURIComponent(state.currentUser)
+                    + '&token='    + encodeURIComponent(state.sessionToken);
+                const res  = await fetch(url, { redirect: 'follow' });
+                const data = await res.json();
+                return data.valid === true;
+            } catch(e) {
+                console.error('verifySession error:', e);
+                // Kalau network error, tetap izinkan masuk (offline tolerance)
+                return true;
+            }
+        }
+
+        function forceLogout(pesan) {
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('sessionToken');
+            state.currentUser  = null;
+            state.sessionToken = null;
+            showLogin();
+            if (pesan) {
+                const errorEl = document.getElementById('loginError');
+                errorEl.textContent = pesan;
+                errorEl.style.display = 'block';
             }
         }
 
@@ -896,25 +931,54 @@
             setNavbarMode(state.navbarMode);
             await loadTabsFromSheet();
             renderNavbar();
-            if (state.currentTab) selectTab(state.currentTab);
+            if (state.currentTab && state.tabs.length > 0) {
+                const tabExists = state.tabs.some(t => t.name === state.currentTab);
+                if (tabExists) selectTab(state.currentTab);
+            }
         }
 
         async function loadTabsFromSheet() {
             try {
-                const url = `${state.appsScriptUrl}?action=getTabs&username=${encodeURIComponent(state.currentUser)}&token=${encodeURIComponent(state.sessionToken)}`;
-                const res = await fetch(url, { redirect: 'follow' });
+                const url = state.appsScriptUrl
+                    + '?action=getTabs'
+                    + '&username=' + encodeURIComponent(state.currentUser)
+                    + '&token='    + encodeURIComponent(state.sessionToken);
+                const res  = await fetch(url, { redirect: 'follow' });
                 const data = await res.json();
-                if (data.success && data.tabs) {
+
+                if (data.success && Array.isArray(data.tabs)) {
                     state.tabs = data.tabs;
-                } else if (data.message && data.message.includes('expired')) {
-                    // Session expired - paksa login ulang
-                    localStorage.removeItem('currentUser');
-                    localStorage.removeItem('sessionToken');
-                    location.reload();
+                } else if (!data.success) {
+                    const msg = data.message || '';
+                    if (msg.toLowerCase().includes('expired') || msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('tidak valid')) {
+                        forceLogout('Session berakhir, silakan login ulang');
+                    } else {
+                        // Gagal tapi bukan expired - tampilkan error tanpa logout
+                        showLoadError('Gagal memuat tab: ' + msg);
+                    }
                 }
             } catch(e) {
                 console.error('loadTabs error:', e);
+                showLoadError('Tidak dapat terhubung ke server. Periksa koneksi internet.');
             }
+        }
+
+        function showLoadError(pesan) {
+            const contentArea = document.getElementById('contentArea');
+            contentArea.innerHTML = `
+                <div class="empty-state" style="flex-direction:column; gap:16px; text-align:center; padding:20px;">
+                    <div style="color:#e74c3c; font-size:15px;">⚠️ ${pesan}</div>
+                    <button onclick="retryLoadTabs()" style="padding:10px 24px; background:#667eea; color:white; border:none; border-radius:8px; cursor:pointer; font-size:14px; font-weight:600;">Coba Lagi</button>
+                </div>
+            `;
+        }
+
+        async function retryLoadTabs() {
+            document.getElementById('contentArea').innerHTML = '<div class="empty-state">Memuat...</div>';
+            await loadTabsFromSheet();
+            renderNavbar();
+            if (state.currentTab && state.tabs.length > 0) selectTab(state.currentTab);
+            else document.getElementById('contentArea').innerHTML = '<div class="empty-state">Klik tombol menu untuk membuka TAB</div>';
         }
 
         function applyMenuPosition(pos) {
