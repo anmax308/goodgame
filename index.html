@@ -879,9 +879,10 @@
                 const data = await response.json();
 
                 if (data.success === true) {
-                    state.currentUser = username;
+                    const actualUser = data.username || username;
+                    state.currentUser = actualUser;
                     state.sessionToken = data.token;
-                    localStorage.setItem('currentUser', JSON.stringify(username));
+                    localStorage.setItem('currentUser', JSON.stringify(actualUser));
                     localStorage.setItem('sessionToken', data.token);
                     showApp();
                     document.getElementById('username').value = '';
