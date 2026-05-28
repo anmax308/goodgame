@@ -1,104 +1,257 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staff Login - Karyawan</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
-            background: #f0f0f0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .container {
-            width: 100%;
-            height: 100%;
-            position: relative;
-        }
-
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
-        }
-
-        /* Loading indicator */
-        .loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-family: Arial, sans-serif;
-            font-size: 18px;
-            color: #666;
-            z-index: 1;
-            display: none;
-        }
-
-        .loading.active {
-            display: block;
-        }
-    </style>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      background: #0a0a0a;
+      color: #e0e0e0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #1a1a1a 0%, #2a1a0a 100%);
+      padding: 10px 16px;
+      text-align: center;
+      border-bottom: 1px solid #333;
+    }
+    
+    .header h1 {
+      color: #ffd700;
+      font-size: 18px;
+      margin: 0;
+      letter-spacing: 1px;
+      text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+    }
+    
+    .qr-wrapper {
+      padding: 8px 16px 16px 16px;
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    
+    .card {
+      background: #1a1a1a;
+      border-radius: 10px;
+      padding: 12px;
+      border: 1px solid #2a2a2a;
+    }
+    
+    .qr-container {
+      text-align: center;
+    }
+    
+    #qrCodeContainer {
+      display: inline-block;
+      background: white;
+      padding: 8px;
+      border-radius: 8px;
+      margin: 0 auto;
+    }
+    
+    #qrCodeContainer canvas,
+    #qrCodeContainer img {
+      display: block;
+      margin: 0 auto;
+    }
+    
+    .timer-bar {
+      background: #333;
+      height: 3px;
+      border-radius: 2px;
+      margin: 10px 0;
+      overflow: hidden;
+    }
+    
+    .timer-bar-fill {
+      background: #00d4ff;
+      height: 100%;
+      transition: width 1s linear;
+    }
+    
+    .btn {
+      background: #00d4ff;
+      color: #000;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      width: 100%;
+      margin-top: 6px;
+    }
+    
+    .btn:active { transform: scale(0.97); }
+    
+    .btn-link {
+      background: #2a2a2a;
+      color: #00d4ff;
+      border: 1px solid #00d4ff;
+    }
+    
+    .info-text {
+      color: #666;
+      font-size: 11px;
+      text-align: center;
+      margin-top: 6px;
+    }
+    
+    .section-title {
+      text-align: center;
+      color: #fff;
+      font-size: 15px;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="loading" id="loading">Memuat halaman...</div>
-        <iframe 
-            id="staffFrame"
-            src="https://script.google.com/macros/s/AKfycbzwaAMWekj_6RQ7K_s6diEdnR8wNAjaOvHdQK75fVTbMUS25tjuJEikg_AQjPHYQcvfQQ/exec?page=Webkary"
-            title="Staff Karyawan"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-            loading="lazy"
-            onload="hideLoading()"
-            onerror="showError()">
-        </iframe>
+  <div class="header">
+    <h1>🎱 GoodGame Billiard</h1>
+  </div>
+  
+  <div class="qr-wrapper">
+    <div class="card">
+      <div class="section-title" id="qrTitle">📱 Scan QR Code</div>
+      <div class="qr-container">
+        <div id="qrCodeContainer"></div>
+      </div>
+      <div class="timer-bar" id="timerBarSection">
+        <div class="timer-bar-fill" id="qrTimerBar" style="width: 100%;"></div>
+      </div>
+      <p id="qrCountdown" style="color: #888; text-align: center; font-size: 13px; margin-top: 6px;">Refresh dalam 30 detik</p>
+      <button class="btn" id="btnRefresh" onclick="manualRefreshQR()">🔄 Refresh QR</button>
+      <button class="btn btn-link" id="btnLink" onclick="showLinkQR()">🔗 LINK LOGIN STAFF</button>
+      <p class="info-text">Klik Refresh untuk memperbarui QR Code</p>
     </div>
+  </div>
 
-    <script>
-        const loadingEl = document.getElementById('loading');
-        const iframe = document.getElementById('staffFrame');
-
-        // Show loading initially
-        loadingEl.classList.add('active');
-
-        function hideLoading() {
-            loadingEl.classList.remove('active');
-        }
-
-        function showError() {
-            loadingEl.innerHTML = '⚠️ Gagal memuat halaman. Silakan refresh.';
-            loadingEl.classList.add('active');
-        }
-
-        // Fallback: hide loading after 10 seconds if iframe doesn't trigger onload
-        setTimeout(() => {
-            if (loadingEl.classList.contains('active')) {
-                loadingEl.classList.remove('active');
-            }
-        }, 10000);
-
-        // Handle iframe load error (some browsers don't trigger onerror)
-        iframe.addEventListener('load', hideLoading);
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  
+  <script>
+    let qrCodeInstance = null;
+    let qrTimerBarInterval;
+    let qrTimeLeft = 0;
+    let currentMode = 'istirahat';
+    
+    const STAFF_LOGIN_URL = 'https://script.google.com/macros/s/AKfycbzwaAMWekj_6RQ7K_s6diEdnR8wNAjaOvHdQK75fVTbMUS25tjuJEikg_AQjPHYQcvfQQ/exec?page=Webkary';
+    
+    // ==================== QR GENERATOR ====================
+    function startQRGenerator() {
+      stopQRGenerator();
+      currentMode = 'istirahat';
+      generateQR();
+    }
+    
+    function stopQRGenerator() {
+      if (qrTimerBarInterval) {
+        clearInterval(qrTimerBarInterval);
+        qrTimerBarInterval = null;
+      }
+    }
+    
+    function manualRefreshQR() {
+      stopQRGenerator();
+      currentMode = 'istirahat';
+      
+      document.getElementById('qrTitle').textContent = '📱 Scan QR Code';
+      document.getElementById('timerBarSection').style.display = 'block';
+      document.getElementById('qrCountdown').style.display = 'block';
+      document.getElementById('btnRefresh').textContent = '🔄 Refresh QR';
+      document.getElementById('btnLink').textContent = '🔗 LINK LOGIN STAFF';
+      document.querySelector('.info-text').textContent = 'Klik Refresh untuk memperbarui QR Code';
+      
+      generateQR();
+    }
+    
+    function generateQR() {
+      const container = document.getElementById('qrCodeContainer');
+      container.innerHTML = '';
+      
+      if (currentMode === 'istirahat') {
+        google.script.run.withSuccessHandler(function(result) {
+          qrCodeInstance = new QRCode(container, {
+            text: result.qrData,
+            width: 220,
+            height: 220,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M
+          });
+          
+          startTimer(result.expiresIn);
+        }).generateQRToken();
+      }
+    }
+    
+    function showLinkQR() {
+      stopQRGenerator();
+      currentMode = 'link';
+      
+      document.getElementById('qrTitle').textContent = '🔗 Link Login Staff';
+      document.getElementById('timerBarSection').style.display = 'none';
+      document.getElementById('qrCountdown').style.display = 'none';
+      document.getElementById('btnRefresh').textContent = '🔄 Kembali ke QR Istirahat';
+      document.getElementById('btnLink').textContent = '🔗 LINK LOGIN STAFF';
+      document.querySelector('.info-text').textContent = 'Scan QR ini untuk buka halaman login staff';
+      
+      const container = document.getElementById('qrCodeContainer');
+      container.innerHTML = '';
+      
+      qrCodeInstance = new QRCode(container, {
+        text: STAFF_LOGIN_URL,
+        width: 220,
+        height: 220,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    }
+    
+    function startTimer(timer) {
+      const timerBar = document.getElementById('qrTimerBar');
+      const countdown = document.getElementById('qrCountdown');
+      qrTimeLeft = timer;
+      
+      timerBar.style.width = '100%';
+      timerBar.style.background = '#00d4ff';
+      countdown.style.color = '#888';
+      countdown.textContent = 'Refresh dalam ' + qrTimeLeft + ' detik';
+      
+      if (qrTimerBarInterval) clearInterval(qrTimerBarInterval);
+      
+      qrTimerBarInterval = setInterval(function() {
+        qrTimeLeft--;
+        const percent = (qrTimeLeft / timer) * 100;
+        timerBar.style.width = percent + '%';
+        countdown.textContent = 'Refresh dalam ' + qrTimeLeft + ' detik';
         
-        // Optional: auto-resize iframe if needed (for responsive)
-        window.addEventListener('resize', () => {
-            // Iframe already 100% width/height, no action needed
-            // but this listener can be used for future adjustments
-        });
-
-        console.log('Staff Login Page Loaded');
-    </script>
+        if (qrTimeLeft <= 5) {
+          timerBar.style.background = '#ff4444';
+          countdown.style.color = '#ff4444';
+        } else {
+          timerBar.style.background = '#00d4ff';
+          countdown.style.color = '#888';
+        }
+        
+        if (qrTimeLeft <= 0) {
+          clearInterval(qrTimerBarInterval);
+          countdown.textContent = '⚠️ QR Expired - Klik Refresh';
+          timerBar.style.background = '#ff4444';
+          timerBar.style.width = '0%';
+        }
+      }, 1000);
+    }
+    
+    // Start QR on load
+    startQRGenerator();
+  </script>
 </body>
 </html>
