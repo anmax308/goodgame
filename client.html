@@ -533,6 +533,8 @@
 
                 handleLoad() {
                     this.iframe.addEventListener('load', () => {
+                        console.log('✅ Iframe loaded successfully');
+                        
                         // Sembunyikan loading screen
                         setTimeout(() => {
                             const loadingScreen = document.getElementById('loading-screen');
@@ -540,11 +542,34 @@
                                 loadingScreen.classList.add('hidden');
                             }
                         }, 500);
-
-                        // Coba proteksi contentWindow
+                
                         this.protectContentWindow();
                     });
-                },
+                
+                    // TAMBAHKAN: Error handler
+                    this.iframe.addEventListener('error', (e) => {
+                        console.error('❌ Iframe failed to load');
+                        showError('Gagal memuat halaman. URL mungkin memblokir iframe.');
+                    });
+                
+                    // TAMBAHKAN: Timeout fallback
+                    setTimeout(() => {
+                        const loadingScreen = document.getElementById('loading-screen');
+                        if (loadingScreen && !loadingScreen.classList.contains('hidden')) {
+                            console.warn('⚠️ Loading timeout - kemungkinan diblokir');
+                            loadingScreen.innerHTML = `
+                                <div style="text-align: center; color: white;">
+                                    <div style="font-size: 50px; margin-bottom: 20px;">⏳</div>
+                                    <div style="font-size: 18px; color: #ff9800;">Halaman terlalu lama dimuat</div>
+                                    <div style="font-size: 12px; color: #888; margin-top: 20px;">
+                                        Mungkin diblokir oleh Google.<br>
+                                        Coba buka langsung: <a href="${this.targetUrl}" target="_blank" style="color: #6c63ff;">Klik di sini</a>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }, CONFIG.LOADING_TIMEOUT);
+                }
 
                 protectContentWindow() {
                     try {
