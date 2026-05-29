@@ -1,14 +1,134 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Redirect...</title>
-  <script>
-    window.location.href = 'https://script.google.com/macros/s/AKfycbzwaAMWekj_6RQ7K_s6diEdnR8wNAjaOvHdQK75fVTbMUS25tjuJEikg_AQjPHYQcvfQQ/exec?page=Webkary';
-  </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Staff Login - Karyawan</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #f5f5f5;
+        }
+
+        .container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            transition: opacity 0.3s ease;
+            font-family: Arial, sans-serif;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #ddd;
+            border-top: 4px solid #4285f4;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
-  <p style="text-align:center;margin-top:50px;font-family:sans-serif;">Mengalihkan ke halaman login...</p>
+    <div class="container">
+        <!-- Loading Screen -->
+        <div class="loading-screen" id="loadingScreen">
+            <div class="spinner"></div>
+            <div class="loading-text">Memuat halaman...</div>
+        </div>
+
+        <!-- Iframe -->
+        <iframe 
+            id="staffFrame"
+            src="https://script.google.com/macros/s/AKfycbzwaAMWekj_6RQ7K_s6diEdnR8wNAjaOvHdQK75fVTbMUS25tjuJEikg_AQjPHYQcvfQQ/exec?page=Webkary"
+            title="Staff Karyawan Portal"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation"
+            allow="camera; microphone; fullscreen"
+            loading="eager">
+        </iframe>
+    </div>
+
+    <script>
+        const loadingScreen = document.getElementById('loadingScreen');
+        const staffFrame = document.getElementById('staffFrame');
+
+        // Sembunyikan loading saat iframe selesai load
+        staffFrame.addEventListener('load', function() {
+            loadingScreen.classList.add('hidden');
+            
+            // Hapus loading screen sepenuhnya setelah transisi
+            setTimeout(() => {
+                if (loadingScreen.parentNode) {
+                    loadingScreen.remove();
+                }
+            }, 300);
+        });
+
+        // Fallback: sembunyikan loading setelah 15 detik
+        setTimeout(() => {
+            if (!loadingScreen.classList.contains('hidden')) {
+                loadingScreen.classList.add('hidden');
+            }
+        }, 15000);
+
+        // Error handling
+        staffFrame.addEventListener('error', function() {
+            loadingScreen.innerHTML = `
+                <div style="text-align:center;color:#d32f2f;">
+                    <div style="font-size:48px;margin-bottom:10px;">⚠️</div>
+                    <div style="font-size:16px;font-weight:bold;">Gagal Memuat Halaman</div>
+                    <div style="font-size:13px;margin-top:8px;color:#888;">Silakan refresh atau coba beberapa saat lagi</div>
+                </div>
+            `;
+        });
+    </script>
 </body>
 </html>
